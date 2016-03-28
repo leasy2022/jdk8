@@ -95,7 +95,7 @@ public class AtomicBoolean implements java.io.Serializable {
      * @return {@code true} if successful. False return indicates that
      * the actual value was not equal to the expected value.
      */
-    public final boolean compareAndSet(boolean expect, boolean update) {
+    public final boolean compareAndSet(boolean expect, boolean update) { // 把比较和赋值 一起组合也为原子操作,返回boolean
         int e = expect ? 1 : 0;
         int u = update ? 1 : 0;
         return unsafe.compareAndSwapInt(this, valueOffset, e, u);

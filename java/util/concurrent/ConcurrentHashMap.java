@@ -1024,7 +1024,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                 tab = helpTransfer(tab, f);
             else {
                 V oldVal = null;
-                synchronized (f) {
+                synchronized (f) { //锁住 局部对象, 只对调用这个函数的并发线程有影响
                     if (tabAt(tab, i) == f) {
                         if (fh >= 0) {
                             binCount = 1;
