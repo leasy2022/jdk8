@@ -237,7 +237,7 @@ public interface Map<K,V> {
      * @throws IllegalArgumentException if some property of the specified key
      *         or value prevents it from being stored in this map
      */
-    V put(K key, V value);
+    V put(K key, V value); // put 有返回值
 
     /**
      * Removes the mapping for a key from this map if it is present
@@ -833,6 +833,7 @@ public interface Map<K,V> {
      *         or value prevents it from being stored in this map
      * @since 1.8
      */
+    // default关键字, java8 新特性, 接口中方法默认方法
     default boolean replace(K key, V oldValue, V newValue) {
         Object curValue = get(key);
         if (!Objects.equals(curValue, oldValue) ||

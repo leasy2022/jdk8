@@ -81,7 +81,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * @implSpec
      * This implementation returns <tt>entrySet().size()</tt>.
      */
-    public int size() {
+    public int size() {  // 抽象类中size实现,具体到各个类中,再改变
         return entrySet().size();
     }
 

@@ -93,6 +93,7 @@ package java.util.concurrent;
  * @author Doug Lea
  * @param <V> The result type returned by this Future's {@code get} method
  */
+//http://www.cnblogs.com/dolphin0520/p/3949310.html 参考阅读源码
 public interface Future<V> {
 
     /**
@@ -135,6 +136,7 @@ public interface Future<V> {
      *
      * @return {@code true} if this task completed
      */
+    //isDone方法表示任务是否已经完成，若任务完成，则返回true
     boolean isDone();
 
     /**
@@ -148,6 +150,7 @@ public interface Future<V> {
      * @throws InterruptedException if the current thread was interrupted
      * while waiting
      */
+    // get方法获取执行结果，该方法会阻塞直到任务返回结果。
     V get() throws InterruptedException, ExecutionException;
 
     /**
@@ -164,6 +167,7 @@ public interface Future<V> {
      * while waiting
      * @throws TimeoutException if the wait timed out
      */
+    //用来获取执行结果，如果在指定时间内，还没获取到结果，就直接返回null。
     V get(long timeout, TimeUnit unit)
         throws InterruptedException, ExecutionException, TimeoutException;
 }

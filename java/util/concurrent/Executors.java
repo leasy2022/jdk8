@@ -68,6 +68,9 @@ import sun.security.util.SecurityConstants;
  * @since 1.5
  * @author Doug Lea
  */
+/*
+工厂类, 生成各种 ExecutorService
+ */
 public class Executors {
 
     /**
@@ -212,6 +215,7 @@ public class Executors {
      *
      * @return the newly created thread pool
      */
+    // 初始线程个数为0, 最大无上限; 如果需要设置初始线程个数,并在空闲时保留,使用ScheduledThreadPoolExecutor
     public static ExecutorService newCachedThreadPool() {
         return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
                                       60L, TimeUnit.SECONDS,

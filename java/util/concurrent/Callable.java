@@ -55,6 +55,7 @@ package java.util.concurrent;
  * @param <V> the result type of method {@code call}
  */
 @FunctionalInterface
+// 是我们在程序中实现 自己的逻辑
 public interface Callable<V> {
     /**
      * Computes a result, or throws an exception if unable to do so.
@@ -64,3 +65,14 @@ public interface Callable<V> {
      */
     V call() throws Exception;
 }
+//class Task implements Callable<Integer>{
+//    @Override
+//    public Integer call() throws Exception {
+//        System.out.println("子线程在进行计算");
+//        Thread.sleep(3000);
+//        int sum = 0;
+//        for(int i=0;i<100;i++)
+//            sum += i;
+//        return sum;
+//    }
+//}
