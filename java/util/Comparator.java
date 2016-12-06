@@ -105,6 +105,9 @@ import java.util.Comparators;
  * @see java.io.Serializable
  * @since 1.2
  */
+/*
+一个类型,怎么判别谁大谁小
+ */
 @FunctionalInterface
 public interface Comparator<T> {
     /**

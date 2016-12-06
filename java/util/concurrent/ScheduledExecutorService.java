@@ -36,9 +36,10 @@
 package java.util.concurrent;
 
 /**
+ * 1 延迟执行任务  周期执行任务
  * An {@link ExecutorService} that can schedule commands to run after a given
  * delay, or to execute periodically.
- *
+ *  2
  * <p>The {@code schedule} methods create tasks with various delays
  * and return a task object that can be used to cancel or check
  * execution. The {@code scheduleAtFixedRate} and
@@ -150,6 +151,13 @@ public interface ScheduledExecutorService extends ExecutorService {
      *         scheduled for execution
      * @throws NullPointerException if command is null
      * @throws IllegalArgumentException if period less than or equal to zero
+     */
+    /*
+     第一次执行的时间: after initialDelay
+     第二次执行的时间: initialDelay+period
+     第三次执行的时间: initialDelay + 2 * period
+     两种特殊情况: 1 如果执行任务的遇到了异常,会影响 随后的任务执行.
+                 2 如果 执行耗用的时间 > period, 后续任务也会延迟执行
      */
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable command,
                                                   long initialDelay,

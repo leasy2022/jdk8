@@ -33,7 +33,8 @@ import java.util.Spliterator;
  * <p> A buffer is a linear, finite sequence of elements of a specific
  * primitive type.  Aside from its content, the essential properties of a
  * buffer are its capacity, limit, and position: </p>
- *
+ *  //buffer必备的三个属性是: capacity(容量)   limit(第一个不能读或不能写的下标)  position(被读或写的位置)
+ *  //可以看出, limit和positon 是读或写混合使用的.
  * <blockquote>
  *
  *   <p> A buffer's <i>capacity</i> is the number of elements it contains.  The
@@ -48,7 +49,7 @@ import java.util.Spliterator;
  *   greater than its limit.  </p>
  *
  * </blockquote>
- *
+ *   // 对于基本类型, 都有它实现的一个子类(不包括boolean)
  * <p> There is one subclass of this class for each non-boolean primitive type.
  *
  *
@@ -239,6 +240,9 @@ public abstract class Buffer {
      * @throws  IllegalArgumentException
      *          If the preconditions on <tt>newPosition</tt> do not hold
      */
+    /*
+    重新设置 position, 会修改mark
+     */
     public final Buffer position(int newPosition) {
         if ((newPosition > limit) || (newPosition < 0))
             throw new IllegalArgumentException();
@@ -269,6 +273,9 @@ public abstract class Buffer {
      *
      * @throws  IllegalArgumentException
      *          If the preconditions on <tt>newLimit</tt> do not hold
+     */
+    /*
+    重新设置limit;同时要修改 position, mark
      */
     public final Buffer limit(int newLimit) {
         if ((newLimit > capacity) || (newLimit < 0))

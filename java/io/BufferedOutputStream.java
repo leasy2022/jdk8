@@ -34,12 +34,22 @@ package java.io;
  * @author  Arthur van Hoff
  * @since   JDK1.0
  */
+
+//博客:  http://www.cnblogs.com/skywang12345/p/io_03.html
+/*
+目的: 包装了一个字节数组作为写入的缓冲区 和 一个真正的输出流对象.
+一般情况下, 先把内容写入到字节数组中,当字节数组满了或者不足以再一次写入时,会刷新到输出流中.
+
+写入的api:
+1 写入一个字节: 参数是一个int
+2 写入一个字节数组: 参数是一个字节数组
+ */
 public
 class BufferedOutputStream extends FilterOutputStream {
     /**
      * The internal buffer where data is stored.
      */
-    protected byte buf[];
+    protected byte buf[];  //
 
     /**
      * The number of valid bytes in the buffer. This value is always
@@ -113,6 +123,9 @@ class BufferedOutputStream extends FilterOutputStream {
      * @param      len   the number of bytes to write.
      * @exception  IOException  if an I/O error occurs.
      */
+    /*
+    一般情况下,只是把字节数组中的内容写到了缓冲区buff中
+     */
     public synchronized void write(byte b[], int off, int len) throws IOException {
         if (len >= buf.length) {
             /* If the request length exceeds the size of the output buffer,
@@ -122,7 +135,7 @@ class BufferedOutputStream extends FilterOutputStream {
             out.write(b, off, len);
             return;
         }
-        if (len > buf.length - count) {
+        if (len > buf.length - count) {//如果写入的字节长度 大于 缓冲区剩余的长度,先flush
             flushBuffer();
         }
         System.arraycopy(b, off, buf, count, len);

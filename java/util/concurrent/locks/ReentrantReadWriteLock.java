@@ -33,6 +33,11 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
+
+/*
+参考博客:
+http://blog.csdn.net/yuhongye111/article/details/39055531
+ */
 package java.util.concurrent.locks;
 import java.util.concurrent.TimeUnit;
 import java.util.Collection;
@@ -238,10 +243,10 @@ public class ReentrantReadWriteLock
      */
     public ReentrantReadWriteLock(boolean fair) {
         sync = fair ? new FairSync() : new NonfairSync();
-        readerLock = new ReadLock(this);
+        readerLock = new ReadLock(this); //
         writerLock = new WriteLock(this);
     }
-
+   // 实现接口的两个方法: 获得成员变量写锁和读锁
     public ReentrantReadWriteLock.WriteLock writeLock() { return writerLock; }
     public ReentrantReadWriteLock.ReadLock  readLock()  { return readerLock; }
 
@@ -260,28 +265,42 @@ public class ReentrantReadWriteLock
          */
 
         static final int SHARED_SHIFT   = 16;
+        //由于读锁用高位部分，读锁个数加1，其实是状态值加 2^16
         static final int SHARED_UNIT    = (1 << SHARED_SHIFT);
         static final int MAX_COUNT      = (1 << SHARED_SHIFT) - 1;
-        static final int EXCLUSIVE_MASK = (1 << SHARED_SHIFT) - 1;
-
+        static final int EXCLUSIVE_MASK = (1 << SHARED_SHIFT) - 1;//低位16个二进制都是1
+        //把状态的高16位用作读锁，低16位用作写锁
+        //读锁加1，就是状态的高16位加1，低16位不变，所以要加的不是1，而是2^16，减一同样是这样。
         /** Returns the number of shared holds represented in count  */
-        static int sharedCount(int c)    { return c >>> SHARED_SHIFT; }
+        static int sharedCount(int c)    { return c >>> SHARED_SHIFT; }//读锁的个数
         /** Returns the number of exclusive holds represented in count  */
-        static int exclusiveCount(int c) { return c & EXCLUSIVE_MASK; }
+        static int exclusiveCount(int c) { return c & EXCLUSIVE_MASK; }//写锁的个数
 
         /**
          * A counter for per-thread read hold counts.
          * Maintained as a ThreadLocal; cached in cachedHoldCounter
          */
+        /**
+         * 每个线程持有读锁的计数
+         */
         static final class HoldCounter {
             int count = 0;
             // Use id, not reference, to avoid garbage retention
+            //           //使用id而不是引用是为了避免保留垃圾。注意这是个常量。
             final long tid = getThreadId(Thread.currentThread());
         }
 
         /**
          * ThreadLocal subclass. Easiest to explicitly define for sake
          * of deserialization mechanics.
+         */
+        /**
+         * 采用继承是为了重写 initialValue 方法，这样就不用进行这样的处理：
+         * 如果ThreadLocal没有当前线程的计数，则new一个，再放进ThreadLocal里。
+         * 可以直接调用 get。
+         * */
+        /*
+        拥有统一的初始值
          */
         static final class ThreadLocalHoldCounter
             extends ThreadLocal<HoldCounter> {
@@ -294,6 +313,10 @@ public class ReentrantReadWriteLock
          * The number of reentrant read locks held by current thread.
          * Initialized only in constructor and readObject.
          * Removed whenever a thread's read hold count drops to 0.
+         */
+        /**
+         * 当前线程持有的可重入读锁的数量，仅在构造方法和readObject(反序列化)
+         * 时被初始化，当持有锁的数量为0时，移除此对象。
          */
         private transient ThreadLocalHoldCounter readHolds;
 
@@ -310,6 +333,12 @@ public class ReentrantReadWriteLock
          *
          * <p>Accessed via a benign data race; relies on the memory
          * model's final field and out-of-thin-air guarantees.
+         */
+        /**
+         * 最近一个成功获取读锁的线程的计数。这省却了ThreadLocal查找，
+         * 通常情况下，下一个释放线程是最后一个获取线程。这不是 volatile 的，
+         * 因为它仅用于试探的，线程进行缓存也是可以的
+         * （因为判断是否是当前线程是通过线程id来比较的）。
          */
         private transient HoldCounter cachedHoldCounter;
 
@@ -330,6 +359,15 @@ public class ReentrantReadWriteLock
          *
          * <p>This allows tracking of read holds for uncontended read
          * locks to be very cheap.
+         */
+        /**firstReader是第一个获得读锁的线程；
+         * firstReaderHoldCount是firstReader的重入计数；
+         * 更准确的说，firstReader是最后一个把共享计数从0改为1，并且还没有释放锁。
+         * 如果没有这样的线程，firstReader为null;
+         * firstReader不会导致垃圾堆积，因为在tryReleaseShared中将它置空了，除非
+         * 线程异常终止，没有释放读锁。
+         *
+         * 跟踪无竞争的读锁计数时，代价很低
          */
         private transient Thread firstReader = null;
         private transient int firstReaderHoldCount;
@@ -463,13 +501,15 @@ public class ReentrantReadWriteLock
              */
             Thread current = Thread.currentThread();
             int c = getState();
-            if (exclusiveCount(c) != 0 &&
-                getExclusiveOwnerThread() != current)
+            if (exclusiveCount(c) != 0 &&//写锁被占用,且不是当前线程持有,返回-1
+                getExclusiveOwnerThread() != current) //占有写锁的线程可以持有读锁
                 return -1;
-            int r = sharedCount(c);
-            if (!readerShouldBlock() &&
+            //写锁没被占用或占有写锁的线程申请读锁,(继续运行)
+            int r = sharedCount(c);//获取读锁的数量
+            if (!readerShouldBlock() && //公平锁如果链表中有等待线程的节点,则需要阻塞;  非公平锁,如果下一个等待节点是写线程,也需要阻塞
                 r < MAX_COUNT &&
-                compareAndSetState(c, c + SHARED_UNIT)) {
+                compareAndSetState(c, c + SHARED_UNIT)) {//读锁+1成功
+                // 读锁为0和不为0时
                 if (r == 0) {
                     firstReader = current;
                     firstReaderHoldCount = 1;
@@ -485,6 +525,7 @@ public class ReentrantReadWriteLock
                 }
                 return 1;
             }
+            //如果需要阻塞 或者 获取读锁CAS失败，放到循环里重试
             return fullTryAcquireShared(current);
         }
 
@@ -679,6 +720,9 @@ public class ReentrantReadWriteLock
              * block if there is a waiting writer behind other enabled
              * readers that have not yet drained from the queue.
              */
+            /*
+             避免写线程无限期处于饥饿状态. 看等待链表的下一个节点是不是 写线程
+             */
             return apparentlyFirstQueuedIsExclusive();
         }
     }
@@ -722,6 +766,10 @@ public class ReentrantReadWriteLock
          * <p>If the write lock is held by another thread then
          * the current thread becomes disabled for thread scheduling
          * purposes and lies dormant until the read lock has been acquired.
+         */
+        /*
+        如果写锁被占用,则获取失败,构建一个共享节点,放入链表尾部,并挂起线程,等待唤醒.
+        如果写锁没被占用(或占用写锁的线程再次申请读锁), 会申请成功. 读锁计数+1
          */
         public void lock() {
             sync.acquireShared(1);

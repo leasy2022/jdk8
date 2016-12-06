@@ -159,7 +159,7 @@ public interface Queue<E> extends Collection<E> {
      * @throws IllegalArgumentException if some property of this element
      *         prevents it from being added to this queue
      */
-    boolean add(E e);
+    boolean add(E e); //要么成功,失败则抛出运行时异常
 
     /**
      * Inserts the specified element into this queue if it is possible to do
@@ -177,6 +177,9 @@ public interface Queue<E> extends Collection<E> {
      *         this queue does not permit null elements
      * @throws IllegalArgumentException if some property of this element
      *         prevents it from being added to this queue
+     */
+    /*
+    在有容量限制的queue中, 优于 add 方法; 如果队列满了,add会抛出异常
      */
     boolean offer(E e);
 

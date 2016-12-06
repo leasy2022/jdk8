@@ -67,11 +67,13 @@ import sun.security.util.SecurityConstants;
  * locate or generate data that constitutes a definition for the class.  A
  * typical strategy is to transform the name into a file name and then read a
  * "class file" of that name from a file system.
- *
+ * //ClassLoader 是个抽象类, 负责加载class
+ * // 最常用的一个策略: 根据字符串名字->转换成文件名字->读取文件名->转换成class
+ * // Class对象中可以获取 ClassLoader
  * <p> Every {@link Class <tt>Class</tt>} object contains a {@link
  * Class#getClassLoader() reference} to the <tt>ClassLoader</tt> that defined
  * it.
- *
+ * //数组的 Class对象不是由class loader加载的,而是在jvm运行时自动创建的
  * <p> <tt>Class</tt> objects for array classes are not created by class
  * loaders, but are created automatically as required by the Java runtime.
  * The class loader for an array class, as returned by {@link
@@ -1081,6 +1083,9 @@ public abstract class ClassLoader {
      *          doesn't have adequate  privileges to get the resource.
      *
      * @since  1.1
+     */
+    /*
+    class loader 会查找 资源或配置等
      */
     public URL getResource(String name) {
         URL url;

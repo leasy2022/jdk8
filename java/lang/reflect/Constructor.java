@@ -180,6 +180,9 @@ public final class Constructor<T> extends Executable {
      * Returns the name of this constructor, as a string.  This is
      * the binary name of the constructor's declaring class.
      */
+    /*
+    返回的是类的名字
+     */
     @Override
     public String getName() {
         return getDeclaringClass().getName();
@@ -401,6 +404,7 @@ public final class Constructor<T> extends Executable {
      * @exception ExceptionInInitializerError if the initialization provoked
      *              by this method fails.
      */
+
     @CallerSensitive
     public T newInstance(Object ... initargs)
         throws InstantiationException, IllegalAccessException,

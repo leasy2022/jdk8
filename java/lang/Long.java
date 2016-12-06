@@ -1057,8 +1057,10 @@ public final class Long extends Number implements Comparable<Long> {
      * @return a hash code value for a {@code long} value.
      * @since 1.8
      */
+    //1 保证了 如果value在int范围内,则hash值不变
     public static int hashCode(long value) {
-        return (int)(value ^ (value >>> 32));
+        return (int)(value ^ (value >>> 32)); // 如果在int范围内,则高位的32位都是0, 通过无符号右移32位后,变为0
+        // 和原来的值做异或运算.(两个操作数的位中，相同则结果为0，不同则结果为1).
     }
 
     /**

@@ -307,6 +307,9 @@ public class ArrayList<E> extends AbstractList<E>
      * <tt>(o==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;o.equals(get(i)))</tt>,
      * or -1 if there is no such index.
      */
+    /*
+    元素可以为null
+     */
     public int indexOf(Object o) {
         if (o == null) {
             for (int i = 0; i < size; i++)
@@ -400,6 +403,9 @@ public class ArrayList<E> extends AbstractList<E>
      *         this list
      * @throws NullPointerException if the specified array is null
      */
+    /*
+    最终调用 copyOf
+     */
     @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {
         if (a.length < size)
@@ -469,6 +475,7 @@ public class ArrayList<E> extends AbstractList<E>
      * @param element element to be inserted
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
+    //指定位置插入: index后面的数据会被重新拷贝,往后移动一个位置
     public void add(int index, E element) {
         rangeCheckForAdd(index);
 
@@ -549,6 +556,9 @@ public class ArrayList<E> extends AbstractList<E>
     /**
      * Removes all of the elements from this list.  The list will
      * be empty after this call returns.
+     */
+    /*
+    clear 是把每个元素都置为null,而不是数组
      */
     public void clear() {
         modCount++;
@@ -1448,7 +1458,7 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")   //list传入一个比较器,可以对list进行排序
     public void sort(Comparator<? super E> c) {
         final int expectedModCount = modCount;
         Arrays.sort((E[]) elementData, 0, size, c);

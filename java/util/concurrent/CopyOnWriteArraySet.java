@@ -153,7 +153,7 @@ public class CopyOnWriteArraySet<E> extends AbstractSet<E>
      * @return {@code true} if this set contains the specified element
      */
     public boolean contains(Object o) {
-        return al.contains(o);
+        return al.contains(o);//最终调用的是 CopyOnWriteArrayList的indexOf, 对当时的快照表进行逐一对比
     }
 
     /**

@@ -809,7 +809,7 @@ public class ScheduledThreadPoolExecutor
     static class DelayedWorkQueue extends AbstractQueue<Runnable>
         implements BlockingQueue<Runnable> {
 
-        /*
+        /*  DelayedWorkQueue 是基于
          * A DelayedWorkQueue is based on a heap-based data structure
          * like those in DelayQueue and PriorityQueue, except that
          * every ScheduledFutureTask also records its index into the

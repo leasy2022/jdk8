@@ -178,6 +178,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      */
 
     private static class Node<E> {
+        //volatile 保证了多线程的可见性
         volatile E item;
         volatile Node<E> next;
 
@@ -189,6 +190,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             UNSAFE.putObject(this, itemOffset, item);
         }
 
+        // 更改当前值
         boolean casItem(E cmp, E val) {
             return UNSAFE.compareAndSwapObject(this, itemOffset, cmp, val);
         }
@@ -196,7 +198,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         void lazySetNext(Node<E> val) {
             UNSAFE.putOrderedObject(this, nextOffset, val);
         }
-
+        //更改下一个值
         boolean casNext(Node<E> cmp, Node<E> val) {
             return UNSAFE.compareAndSwapObject(this, nextOffset, cmp, val);
         }
@@ -206,7 +208,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         private static final sun.misc.Unsafe UNSAFE;
         private static final long itemOffset;
         private static final long nextOffset;
-
+      // 在static中, 加载类的时候赋值.  获得当前和下一个节点的 数据偏移量. 后续的数据存储和替换 api都直接对这两个偏移量
         static {
             try {
                 UNSAFE = sun.misc.Unsafe.getUnsafe();
@@ -329,9 +331,11 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
 
         for (Node<E> t = tail, p = t;;) {
             Node<E> q = p.next;
-            if (q == null) {
+            if (q == null) {  // 如果下一个节点是null,说明tail 是处于尾节点上
                 // p is last node
-                if (p.casNext(null, newNode)) {
+                // 然后用cas 将下一个节点设置成为新节点
+                // 这里用cas 操作，如果多线程的情况，总会有一个先执行成功，失败的线程继续执行循环。
+                if (p.casNext(null, newNode)) {//casNext 函数, 并不是把newNode地址 赋值在null上, 而是内容
                     // Successful CAS is the linearization point
                     // for e to become an element of this queue,
                     // and for newNode to become "live".
@@ -341,7 +345,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                 }
                 // Lost CAS race to another thread; re-read next
             }
-            else if (p == q)
+            else if (p == q)//疑问: 什么时候才会出现这种情况??TH
                 // We have fallen off list.  If tail is unchanged, it
                 // will also be off-list, in which case we need to
                 // jump to head, from which all live nodes are always
@@ -444,6 +448,11 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * applications.
      *
      * @return the number of elements in this queue
+     */
+    /*
+    需要遍历链表, 很慢; 为什么不用成员变量来实现???
+
+    没有使用锁;使用的cas来保证线程安全, 不能同时实现size的加减.
      */
     public int size() {
         int count = 0;

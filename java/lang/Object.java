@@ -183,6 +183,8 @@ public class Object {
      * the case that no fields in the object returned by {@code super.clone}
      * need to be modified.
      * <p>
+     *     // 自定义的类必须实现 Cloneable 接口, 否则会抛出CloneNotSupportedException异常
+     *     //
      * The method {@code clone} for class {@code Object} performs a
      * specific cloning operation. First, if the class of this object does
      * not implement the interface {@code Cloneable}, then a
@@ -268,6 +270,9 @@ public class Object {
      * @see        java.lang.Object#notifyAll()
      * @see        java.lang.Object#wait()
      */
+    /*
+    这个方法 只有获得锁后才能调用.
+     */
     public final native void notify();
 
     /**
@@ -303,22 +308,23 @@ public class Object {
      * The current thread must own this object's monitor.
      * <p>
      * This method causes the current thread (call it <var>T</var>) to
-     * place itself in the wait set for this object and then to relinquish
+     * place itself in the wait set for this object and then to relinquish//放弃
      * any and all synchronization claims on this object. Thread <var>T</var>
      * becomes disabled for thread scheduling purposes and lies dormant
      * until one of four things happens:
-     * <ul>
+     * <ul>//1 同一个锁上的其他线程调用了 notify, 正好将它唤醒
      * <li>Some other thread invokes the {@code notify} method for this
      * object and thread <var>T</var> happens to be arbitrarily chosen as
      * the thread to be awakened.
      * <li>Some other thread invokes the {@code notifyAll} method for this
-     * object.
+     * object.//2 同一个锁上的其他线程调用了 notifyAll, 唤醒了所有的线程
      * <li>Some other thread {@linkplain Thread#interrupt() interrupts}
-     * thread <var>T</var>.
+     * thread <var>T</var>. // 3 时间到了
      * <li>The specified amount of real time has elapsed, more or less.  If
      * {@code timeout} is zero, however, then real time is not taken into
      * consideration and the thread simply waits until notified.
      * </ul>
+     * // 被唤醒后, 线程从 等待集合中 被移除,并能够被重新调度
      * The thread <var>T</var> is then removed from the wait set for this
      * object and re-enabled for thread scheduling. It then competes in the
      * usual manner with other threads for the right to synchronize on the
@@ -378,6 +384,11 @@ public class Object {
      *             this exception is thrown.
      * @see        java.lang.Object#notify()
      * @see        java.lang.Object#notifyAll()
+     */
+    /*
+    使一个线程wait,直至 其他线程调用了 notify/notifyall, 或者wait的时间到了
+    1 必须 获得锁
+    2
      */
     public final native void wait(long timeout) throws InterruptedException;
 
@@ -477,6 +488,9 @@ public class Object {
      * As in the one argument version, interrupts and spurious wakeups are
      * possible, and this method should always be used in a loop:
      * <pre>
+     *
+     *
+     *     #使用 范式............
      *     synchronized (obj) {
      *         while (&lt;condition does not hold&gt;)
      *             obj.wait();
@@ -497,6 +511,13 @@ public class Object {
      *             this exception is thrown.
      * @see        java.lang.Object#notify()
      * @see        java.lang.Object#notifyAll()
+     */
+    /*
+    当前线程会等待,知道调用 notify() 或 notifyAll() 来唤醒
+    如何使用: 当前线程需要获得这个对象的锁( synchronized(objcect)) ;
+             调用object.wait(), 释放锁(加上while循环)
+             等待其他线程调用object.notify() 来唤醒;
+             当前竞争到锁,继续执行.
      */
     public final void wait() throws InterruptedException {
         wait(0);

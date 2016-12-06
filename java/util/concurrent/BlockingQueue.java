@@ -229,6 +229,9 @@ public interface BlockingQueue<E> extends Queue<E> {
      * @throws IllegalArgumentException if some property of the specified
      *         element prevents it from being added to this queue
      */
+    /*
+    增加阻塞方法:一直阻塞
+     */
     void put(E e) throws InterruptedException;
 
     /**
@@ -248,6 +251,9 @@ public interface BlockingQueue<E> extends Queue<E> {
      * @throws NullPointerException if the specified element is null
      * @throws IllegalArgumentException if some property of the specified
      *         element prevents it from being added to this queue
+     */
+    /*
+    阻塞方法:阻塞一定时间
      */
     boolean offer(E e, long timeout, TimeUnit unit)
         throws InterruptedException;

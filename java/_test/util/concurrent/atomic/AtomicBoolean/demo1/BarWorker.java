@@ -27,7 +27,7 @@ public class BarWorker implements Runnable {
                 // do nothing
             }
             System.out.println(name + " leave");
-            exists.set(false);
+            exists.set(false);//设置为false, 另外一个线程开始执行
         } else {
             System.out.println(name + " give up");
         }

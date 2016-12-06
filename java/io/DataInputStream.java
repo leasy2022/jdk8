@@ -39,6 +39,9 @@ package java.io;
  * @see     java.io.DataOutputStream
  * @since   JDK1.0
  */
+//参考博客:  http://www.cnblogs.com/skywang12345/p/io_14.html
+//DataInputStream 的作用就是“允许应用程序以与机器无关方式从底层输入流中读取基本 Java 数据类型。应用程序可以使用数据输出流写入稍后由数据输入流读取的数据。”
+// 它读取字节数组后,再进行转换为java数据类型
 public
 class DataInputStream extends FilterInputStream implements DataInput {
 
@@ -48,6 +51,7 @@ class DataInputStream extends FilterInputStream implements DataInput {
      *
      * @param  in   the specified input stream
      */
+    //可以看出是一个包装流
     public DataInputStream(InputStream in) {
         super(in);
     }
@@ -165,6 +169,8 @@ class DataInputStream extends FilterInputStream implements DataInput {
      *             another I/O error occurs.
      * @see        java.io.FilterInputStream#in
      */
+    // 从“数据输入流”中读取数据并填满字节数组b中；没有填满数组b则一直读取，直到填满位置。
+    // 从字节数组b的位置0开始存储，并且读取的字节个数等于b的长度。
     public final void readFully(byte b[]) throws IOException {
         readFully(b, 0, b.length);
     }
@@ -238,11 +244,12 @@ class DataInputStream extends FilterInputStream implements DataInput {
      *             another I/O error occurs.
      * @see        java.io.FilterInputStream#in
      */
+    //读一个字节
     public final boolean readBoolean() throws IOException {
         int ch = in.read();
         if (ch < 0)
             throw new EOFException();
-        return (ch != 0);
+        return (ch != 0);//等于0为false, 不等于0为true
     }
 
     /**
@@ -265,7 +272,7 @@ class DataInputStream extends FilterInputStream implements DataInput {
         int ch = in.read();
         if (ch < 0)
             throw new EOFException();
-        return (byte)(ch);
+        return (byte)(ch);//直接转换
     }
 
     /**
@@ -288,7 +295,7 @@ class DataInputStream extends FilterInputStream implements DataInput {
         int ch = in.read();
         if (ch < 0)
             throw new EOFException();
-        return ch;
+        return ch;//这里有个疑问: 同 readByte() 比较
     }
 
     /**
@@ -308,6 +315,7 @@ class DataInputStream extends FilterInputStream implements DataInput {
      *             another I/O error occurs.
      * @see        java.io.FilterInputStream#in
      */
+    //读取两个字节
     public final short readShort() throws IOException {
         int ch1 = in.read();
         int ch2 = in.read();
@@ -358,10 +366,15 @@ class DataInputStream extends FilterInputStream implements DataInput {
      *             another I/O error occurs.
      * @see        java.io.FilterInputStream#in
      */
+    /*
+   DataInputStream 读取一个char为两个字节
+
+   同readShort()代码一样
+     */
     public final char readChar() throws IOException {
-        int ch1 = in.read();
+        int ch1 = in.read();//返回值为int,  占用4个字节
         int ch2 = in.read();
-        if ((ch1 | ch2) < 0)
+        if ((ch1 | ch2) < 0)//判断是不是结束符,是不是-1
             throw new EOFException();
         return (char)((ch1 << 8) + (ch2 << 0));
     }
@@ -382,6 +395,9 @@ class DataInputStream extends FilterInputStream implements DataInput {
      *             input stream does not support reading after close, or
      *             another I/O error occurs.
      * @see        java.io.FilterInputStream#in
+     */
+    /*
+   读取int,  不考虑大端小端问题?
      */
     public final int readInt() throws IOException {
         int ch1 = in.read();
@@ -497,7 +513,7 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * @see        java.io.BufferedReader#readLine()
      * @see        java.io.FilterInputStream#in
      */
-    @Deprecated
+    @Deprecated  /* 废弃*/
     public final String readLine() throws IOException {
         char buf[] = lineBuffer;
 
@@ -513,7 +529,7 @@ loop:   while (true) {
             switch (c = in.read()) {
               case -1:
               case '\n':
-                break loop;
+                break loop;//逐个读取字符,直到是 \n
 
               case '\r':
                 int c2 = in.read();
@@ -560,6 +576,7 @@ loop:   while (true) {
      *             modified UTF-8 encoding of a string.
      * @see        java.io.DataInputStream#readUTF(java.io.DataInput)
      */
+    // 从“数据输入流”中读取“UTF类型”的值
     public final String readUTF() throws IOException {
         return readUTF(this);
     }
@@ -585,8 +602,14 @@ loop:   while (true) {
      *               valid modified UTF-8 encoding of a Unicode string.
      * @see        java.io.DataInputStream#readUnsignedShort()
      */
+
+    // 学习这种: 自己作为自己的参数
+    // readUTF()的作用，是从输入流中读取UTF-8编码的数据，并以String字符串的形式返回。那字符串到底有多长呢? 与DataOutputStream 的writeUTF对应, 读取 写出的字符串
     public final static String readUTF(DataInput in) throws IOException {
+        //第1步，读取出输入流中的UTF-8数据的长度
         int utflen = in.readUnsignedShort();
+
+//        UTF-8的数据是变长的，可以是1-4个字节；在readUTF()中，我们最终是将全部的UTF-8数据保存到“字符数组(而不是字节数组)”中，再将其转换为String字符串。
         byte[] bytearr = null;
         char[] chararr = null;
         if (in instanceof DataInputStream) {
@@ -607,14 +630,18 @@ loop:   while (true) {
         int chararr_count=0;
 
         in.readFully(bytearr, 0, utflen);
-
+        // 注意：这里相当于“预处理的输入流中单字节的符号”，因为UTF-8是1-4个字节可变的。
         while (count < utflen) {
+            // 将每个字节转换成int值
             c = (int) bytearr[count] & 0xff;
-            if (c > 127) break;
+            // UTF-8的单字节数据的值都不会超过127；所以，超过127，则退出。
+            if (c > 127) break; //疑问: 多字节的,如果第一个字节也小于127呢
             count++;
+            // 将c保存到“字符数组chararr”中
             chararr[chararr_count++]=(char)c;
         }
 
+        // 处理完输入流中单字节的符号之后，接下来我们继续处理。
         while (count < utflen) {
             c = (int) bytearr[count] & 0xff;
             switch (c >> 4) {

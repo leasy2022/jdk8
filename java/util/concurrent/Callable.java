@@ -56,6 +56,9 @@ package java.util.concurrent;
  */
 @FunctionalInterface
 // 是我们在程序中实现 自己的逻辑
+/*
+同Runnable一样, 封装执行单元.
+ */
 public interface Callable<V> {
     /**
      * Computes a result, or throws an exception if unable to do so.

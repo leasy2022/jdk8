@@ -504,6 +504,10 @@ public class Executors {
     /**
      * A callable that runs given task and returns given result
      */
+    /*
+    Runnable转换为Callable,RunnableAdapter 实现了 Callable接口,
+    构造函数传入的参数:
+     */
     static final class RunnableAdapter<T> implements Callable<T> {
         final Runnable task;
         final T result;
@@ -512,8 +516,8 @@ public class Executors {
             this.result = result;
         }
         public T call() {
-            task.run();
-            return result;
+            task.run();//没有返回值
+            return result;//返回值和任务执行不相关
         }
     }
 
@@ -613,11 +617,12 @@ public class Executors {
         }
 
         public Thread newThread(Runnable r) {
+            // 调用thread的构造函数, 把Runnable 封装成 Thread
             Thread t = new Thread(group, r,
                                   namePrefix + threadNumber.getAndIncrement(),
                                   0);
             if (t.isDaemon())
-                t.setDaemon(false);
+                t.setDaemon(false);//设置为非后台线程
             if (t.getPriority() != Thread.NORM_PRIORITY)
                 t.setPriority(Thread.NORM_PRIORITY);
             return t;

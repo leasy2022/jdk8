@@ -46,7 +46,7 @@ class FilterOutputStream extends OutputStream {
     /**
      * The underlying output stream to be filtered.
      */
-    protected OutputStream out;
+    protected OutputStream out;//有一个父类的对象 作为成员变量
 
     /**
      * Creates an output stream filter built on top of the specified
@@ -74,7 +74,7 @@ class FilterOutputStream extends OutputStream {
      * @exception  IOException  if an I/O error occurs.
      */
     public void write(int b) throws IOException {
-        out.write(b);
+        out.write(b);// 调用成员变量的
     }
 
     /**

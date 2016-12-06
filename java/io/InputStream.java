@@ -42,6 +42,9 @@ package java.io;
  * @see     java.io.PushbackInputStream
  * @since   JDK1.0
  */
+/*
+参考: http://www.cnblogs.com/skywang12345/p/io_01.html
+ */
 public abstract class InputStream implements Closeable {
 
     // MAX_SKIP_BUFFER_SIZE is used to determine the maximum buffer size to
@@ -61,6 +64,11 @@ public abstract class InputStream implements Closeable {
      * @return     the next byte of data, or <code>-1</code> if the end of the
      *             stream is reached.
      * @exception  IOException  if an I/O error occurs.
+     */
+    /*
+    最基本,最重要的类
+    1 读取一个字节,返回值为读取的内容.
+      如果读取成功,返回0-255;如果到达流的末尾,返回-1
      */
     public abstract int read() throws IOException;
 
@@ -96,6 +104,10 @@ public abstract class InputStream implements Closeable {
      * if some other I/O error occurs.
      * @exception  NullPointerException  if <code>b</code> is <code>null</code>.
      * @see        java.io.InputStream#read(byte[], int, int)
+     */
+    /*
+    参数是一个字节数组,返回值同无参的含义不一样, 返回的是读取的字节个数.0-b.lenght
+
      */
     public int read(byte b[]) throws IOException {
         return read(b, 0, b.length);
@@ -158,6 +170,9 @@ public abstract class InputStream implements Closeable {
      * <code>b.length - off</code>
      * @see        java.io.InputStream#read()
      */
+    /*
+    批量读字节数组, 最终还是调用 read() 方法, 逐一读字节
+     */
     public int read(byte b[], int off, int len) throws IOException {
         if (b == null) {
             throw new NullPointerException();
@@ -167,11 +182,11 @@ public abstract class InputStream implements Closeable {
             return 0;
         }
 
-        int c = read();
-        if (c == -1) {
+        int c = read(); //调用无参的read()
+        if (c == -1) {//如果到达末尾
             return -1;
         }
-        b[off] = (byte)c;
+        b[off] = (byte)c;//转换为一个字节的byte(0-255)
 
         int i = 1;
         try {

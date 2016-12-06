@@ -49,7 +49,7 @@ public
 class FileInputStream extends InputStream
 {
     /* File Descriptor - handle to the open file */
-    private final FileDescriptor fd;
+    private final FileDescriptor fd; //文件描述符
 
     /**
      * The path of the referenced file
@@ -135,7 +135,7 @@ class FileInputStream extends InputStream
         fd = new FileDescriptor();
         fd.attach(this);
         path = name;
-        open(name);
+        open(name);//构造函数中会调用打开文件的api,为读数据做好准备
     }
 
     /**
@@ -162,6 +162,7 @@ class FileInputStream extends InputStream
      *                 file descriptor.
      * @see        SecurityManager#checkRead(java.io.FileDescriptor)
      */
+    //java IO的适配器, 把FileDescriptor 转换成了 InputStream
     public FileInputStream(FileDescriptor fdObj) {
         SecurityManager security = System.getSecurityManager();
         if (fdObj == null) {
@@ -203,6 +204,7 @@ class FileInputStream extends InputStream
      *             file is reached.
      * @exception  IOException  if an I/O error occurs.
      */
+    //从文件中读取一个字节的内容.  如果到达文件末尾会返回-1
     public int read() throws IOException {
         return read0();
     }
@@ -250,6 +252,9 @@ class FileInputStream extends InputStream
      * <code>len</code> is negative, or <code>len</code> is greater than
      * <code>b.length - off</code>
      * @exception  IOException  if an I/O error occurs.
+     */
+    /*
+     调用的是 native函数 readBytes()
      */
     public int read(byte b[], int off, int len) throws IOException {
         return readBytes(b, off, len);
@@ -363,9 +368,12 @@ class FileInputStream extends InputStream
      * @since 1.4
      * @spec JSR-51
      */
+    /*
+    创建这个文件对应的channel
+     */
     public FileChannel getChannel() {
         synchronized (this) {
-            if (channel == null) {
+            if (channel == null) {  //根据文件描述符
                 channel = FileChannelImpl.open(fd, path, true, false, this);
             }
             return channel;

@@ -94,6 +94,11 @@ package java.util.concurrent;
  * @param <V> The result type returned by this Future's {@code get} method
  */
 //http://www.cnblogs.com/dolphin0520/p/3949310.html 参考阅读源码
+    /*
+    Future 代表 异步计算的结果
+    1 两个动作:  get和cancel
+    2 两个状态判断:
+     */
 public interface Future<V> {
 
     /**

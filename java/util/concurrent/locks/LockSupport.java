@@ -37,6 +37,7 @@ package java.util.concurrent.locks;
 import sun.misc.Unsafe;
 
 /**
+ * // 创建锁和其他同步类的基本原语
  * Basic thread blocking primitives for creating locks and other
  * synchronization classes.
  *
@@ -46,16 +47,16 @@ import sun.misc.Unsafe;
  * if the permit is available, consuming it in the process; otherwise
  * it <em>may</em> block.  A call to {@code unpark} makes the permit
  * available, if it was not already available. (Unlike with Semaphores
- * though, permits do not accumulate. There is at most one.)
+ * though, permits do not accumulate. There is at most one.)//不同于信号量,许可不能累计,只有一个
  *
  * <p>Methods {@code park} and {@code unpark} provide efficient
  * means of blocking and unblocking threads that do not encounter the
  * problems that cause the deprecated methods {@code Thread.suspend}
  * and {@code Thread.resume} to be unusable for such purposes: Races
  * between one thread invoking {@code park} and another thread trying
- * to {@code unpark} it will preserve liveness, due to the
- * permit. Additionally, {@code park} will return if the caller's
- * thread was interrupted, and timeout versions are supported. The
+ * to {@code unpark} it will preserve liveness, due to the   //不会出现类似wait/notify的依赖线程先后顺序的竞争.(在notify之前,已经wait,否则一直阻塞)
+ * permit. Additionally, {@code park} will return if the caller's  //返回条件:  1 unpark:获得许可
+ * thread was interrupted, and timeout versions are supported. The    //  2 线程中断   3 阻塞时间到了  4 没有原因的返回(因此需要与while条件判断一起用)
  * {@code park} method may also return at any other time, for "no
  * reason", so in general must be invoked within a loop that rechecks
  * conditions upon return. In this sense {@code park} serves as an
@@ -64,11 +65,11 @@ import sun.misc.Unsafe;
  * effective.
  *
  * <p>The three forms of {@code park} each also support a
- * {@code blocker} object parameter. This object is recorded while
+ * {@code blocker} object parameter. This object is recorded while //blocker 作用: 允许监控和诊断工具鉴别线程阻塞的原因.
  * the thread is blocked to permit monitoring and diagnostic tools to
  * identify the reasons that threads are blocked. (Such tools may
  * access blockers using method {@link #getBlocker(Thread)}.)
- * The use of these forms rather than the original forms without this
+ * The use of these forms rather than the original forms without this//鼓励使用blocker的形式
  * parameter is strongly encouraged. The normal argument to supply as
  * a {@code blocker} within a lock implementation is {@code this}.
  *
@@ -172,7 +173,7 @@ public class LockSupport {
     public static void park(Object blocker) {
         Thread t = Thread.currentThread();
         setBlocker(t, blocker);
-        UNSAFE.park(false, 0L);
+        UNSAFE.park(false, 0L);//阻塞
         setBlocker(t, null);
     }
 
@@ -301,7 +302,7 @@ public class LockSupport {
      * for example, the interrupt status of the thread upon return.
      */
     public static void park() {
-        UNSAFE.park(false, 0L);
+        UNSAFE.park(false, 0L);//阻塞
     }
 
     /**
@@ -400,6 +401,7 @@ public class LockSupport {
         try {
             UNSAFE = sun.misc.Unsafe.getUnsafe();
             Class<?> tk = Thread.class;
+            // 获取Thread的parkBlocker字段的内存偏移地址
             parkBlockerOffset = UNSAFE.objectFieldOffset
                 (tk.getDeclaredField("parkBlocker"));
             SEED = UNSAFE.objectFieldOffset

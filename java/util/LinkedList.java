@@ -334,7 +334,7 @@ public class LinkedList<E>
      * @param e element to be appended to this list
      * @return {@code true} (as specified by {@link Collection#add})
      */
-    public boolean add(E e) {
+    public boolean  add(E e) {
         linkLast(e);
         return true;
     }

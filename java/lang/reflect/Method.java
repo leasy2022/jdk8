@@ -356,6 +356,8 @@ public final class Method extends Executable {
      *
      * @jls 8.4.3 Method Modifiers
      */
+    // 返回结果有一定的格式:
+    //例如: public boolean java.lang.Object.equals(java.lang.Object)
     public String toString() {
         return sharedToString(Modifier.methodModifiers(),
                               isDefault(),

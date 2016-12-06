@@ -41,13 +41,24 @@ import java.util.Arrays;
  * @author  Arthur van Hoff
  * @since   JDK1.0
  */
+/*
+使用无参的构造函数或者一个整数.
+内部会生成一个空的字节数组.
+Output ->write  写内容到字节数组,  并可以获得这个字节数组.
 
+ByteArrayOutputStream 中的数据被写入一个 byte 数组。缓冲区会随着数据的不断写入而自动增长。可使用 toByteArray() 和 toString() 获取数据。
+
+写主要有3个方法:参数是数据来源
+1 往 成员变量缓存池中 写入一个字节: write(int)
+2 写入一个字节数组:  write(byte[], int,int)
+3 通过流写入, 写入多少呢? 填充整个字节数组: writeTo(Outputstream)
+ */
 public class ByteArrayOutputStream extends OutputStream {
 
     /**
      * The buffer where data is stored.
      */
-    protected byte buf[];
+    protected byte buf[];//存储数据的字节数组, 默认长度是32个字节
 
     /**
      * The number of valid bytes in the buffer.
@@ -57,6 +68,9 @@ public class ByteArrayOutputStream extends OutputStream {
     /**
      * Creates a new byte array output stream. The buffer capacity is
      * initially 32 bytes, though its size increases if necessary.
+     */
+    /*
+    默认32
      */
     public ByteArrayOutputStream() {
         this(32);
@@ -68,6 +82,10 @@ public class ByteArrayOutputStream extends OutputStream {
      *
      * @param   size   the initial size.
      * @exception  IllegalArgumentException if size is negative.
+     */
+    /*
+    指定写入字节数组的长度.
+    如果size过小, 会引起字节数组的拷贝.
      */
     public ByteArrayOutputStream(int size) {
         if (size < 0) {
@@ -107,10 +125,11 @@ public class ByteArrayOutputStream extends OutputStream {
      *
      * @param minCapacity the desired minimum capacity
      */
+    //数组扩容: 原来的2倍或者 传入的参数 minCapacity
     private void grow(int minCapacity) {
         // overflow-conscious code
         int oldCapacity = buf.length;
-        int newCapacity = oldCapacity << 1;
+        int newCapacity = oldCapacity << 1;//乘以2
         if (newCapacity - minCapacity < 0)
             newCapacity = minCapacity;
         if (newCapacity - MAX_ARRAY_SIZE > 0)
@@ -130,6 +149,10 @@ public class ByteArrayOutputStream extends OutputStream {
      * Writes the specified byte to this byte array output stream.
      *
      * @param   b   the byte to be written.
+     */
+    /*
+    写入一个字节
+    传入的参数是一个int,但是会转换成byte
      */
     public synchronized void write(int b) {
         ensureCapacity(count + 1);
@@ -186,6 +209,9 @@ public class ByteArrayOutputStream extends OutputStream {
      *
      * @return  the current contents of this output stream, as a byte array.
      * @see     java.io.ByteArrayOutputStream#size()
+     */
+    /*
+    复制一个新的数组返回
      */
     public synchronized byte toByteArray()[] {
         return Arrays.copyOf(buf, count);

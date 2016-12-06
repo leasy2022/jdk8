@@ -1,28 +1,3 @@
-/*
- * Copyright (c) 1994, 2014, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
-
 package java.lang;
 
 import java.lang.reflect.AnnotatedElement;
@@ -116,6 +91,14 @@ import sun.reflect.misc.ReflectUtil;
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
  * @since   JDK1.0
  */
+/*
+1 forName: 根据类名获取Class对象
+2 获得函数们: 分为构造函数和普通函数(需要是公开的)
+3 获得指定函数:分为构造函数和普通函数
+4 获取classLoader
+5 打印类名 toString
+6
+ */
 public final class Class<T> implements java.io.Serializable,
                               GenericDeclaration,
                               Type,
@@ -134,6 +117,9 @@ public final class Class<T> implements java.io.Serializable,
      * This constructor is not used and prevents the default constructor being
      * generated.
      */
+    /*
+    Class类的构造函数是私有的.只要jvm才能构造一个Class的对象.
+     */
     private Class(ClassLoader loader) {
         // Initialize final field for classLoader.  The initialization value of non-null
         // prevents future JIT optimizations from assuming this final field is null.
@@ -150,6 +136,11 @@ public final class Class<T> implements java.io.Serializable,
      * "void".
      *
      * @return a string representation of this class object.
+     */
+    /*
+    如果是接口:
+    如果是类: 如: class java.lang.Class
+    如果是基本类型:   如: int
      */
     public String toString() {
         return (isInterface() ? "interface " : (isPrimitive() ? "" : "class "))
@@ -257,10 +248,16 @@ public final class Class<T> implements java.io.Serializable,
      *            by this method fails
      * @exception ClassNotFoundException if the class cannot be located
      */
+    /*
+    构造函数是私有的,不能创建新的对象.那么怎么获得已经存在的对象呢?
+    根据全名获取
+    ClassLoader
+     */
     @CallerSensitive
     public static Class<?> forName(String className)
                 throws ClassNotFoundException {
         Class<?> caller = Reflection.getCallerClass();
+        // 是否初始化;  指定ClassLoader
         return forName0(className, true, ClassLoader.getClassLoader(caller), caller);
     }
 
@@ -326,6 +323,7 @@ public final class Class<T> implements java.io.Serializable,
      * @see       java.lang.ClassLoader
      * @since     1.2
      */
+    // 名字  只能指定引用类型,不能指定基本类型.
     @CallerSensitive
     public static Class<?> forName(String name, boolean initialize,
                                    ClassLoader loader)
@@ -389,6 +387,10 @@ public final class Class<T> implements java.io.Serializable,
      *          s.checkPackageAccess()} denies access to the package
      *          of this class.
      */
+    /*
+    生成这个类的一个实例:  调用无参构造函数
+
+     */
     @CallerSensitive
     public T newInstance()
         throws InstantiationException, IllegalAccessException
@@ -439,7 +441,7 @@ public final class Class<T> implements java.io.Serializable,
         }
         // Run constructor
         try {
-            return tmpConstructor.newInstance((Object[])null);
+            return tmpConstructor.newInstance((Object[])null);//无参的构造函数调用newInstance方法
         } catch (InvocationTargetException e) {
             Unsafe.getUnsafe().throwException(e.getTargetException());
             // Not reached
@@ -673,8 +675,10 @@ public final class Class<T> implements java.io.Serializable,
      * @see SecurityManager#checkPermission
      * @see java.lang.RuntimePermission
      */
+    // 返回这个类的加载器.  如果是由 bootstrap 加载器加载的类, 则会返回null.如 String.class.getClassLoader();
     @CallerSensitive
     public ClassLoader getClassLoader() {
+        //有一个 ClassLoader 的成员变量
         ClassLoader cl = getClassLoader0();
         if (cl == null)
             return null;
@@ -923,7 +927,7 @@ public final class Class<T> implements java.io.Serializable,
      * class if this class is an array
      * @see     java.lang.reflect.Array
      * @since JDK1.1
-     */
+     *///数组中的元素类型
     public native Class<?> getComponentType();
 
 
@@ -1609,6 +1613,10 @@ public final class Class<T> implements java.io.Serializable,
      * @jls 8.4 Method Declarations
      * @since JDK1.1
      */
+    /*
+    1返回类或接口的所有 public函数(注意:所有类都继承自Object, 因此Object中的函数会被返回)
+    2 不返回构造函数,因为构造函数不是 Method, 而是Constructor
+     */
     @CallerSensitive
     public Method[] getMethods() throws SecurityException {
         checkMemberAccess(Member.PUBLIC, Reflection.getCallerClass(), true);
@@ -1645,6 +1653,7 @@ public final class Class<T> implements java.io.Serializable,
      *
      * @since JDK1.1
      */
+
     @CallerSensitive
     public Constructor<?>[] getConstructors() throws SecurityException {
         checkMemberAccess(Member.PUBLIC, Reflection.getCallerClass(), true);
@@ -1818,6 +1827,7 @@ public final class Class<T> implements java.io.Serializable,
      *
      * @since JDK1.1
      */
+
     @CallerSensitive
     public Constructor<T> getConstructor(Class<?>... parameterTypes)
         throws NoSuchMethodException, SecurityException {
@@ -1969,8 +1979,15 @@ public final class Class<T> implements java.io.Serializable,
      * @jls 8.4 Method Declarations
      * @since JDK1.1
      */
+    /*
+    同getMethods()不同的是:
+    1 返回public protect private default的方法
+    2 只返回自己自己类中定义的方法,不包含继承的方法
+     */
     @CallerSensitive
     public Method[] getDeclaredMethods() throws SecurityException {
+//        checkMemberAccess(Member.PUBLIC, Reflection.getCallerClass(), true);
+//        return copyMethods(privateGetPublicMethods());
         checkMemberAccess(Member.DECLARED, Reflection.getCallerClass(), true);
         return copyMethods(privateGetDeclaredMethods(false));
     }
@@ -2257,8 +2274,14 @@ public final class Class<T> implements java.io.Serializable,
      *              resource with this name is found
      * @since  JDK1.1
      */
+
+    /*
+    分为两种情况:
+    1  如果name是以 / 开始的, 则从classpath 下 找这个文件(用来从classpath路径下（也就是以classpath所在路径为根路径）获得资源。)
+    2 如果名字不是以 / 开始的, 则从当前类(xxx)所在的目录下（也就是以当前类所在路径为根路径）获得资源
+     */
     public java.net.URL getResource(String name) {
-        name = resolveName(name);
+        name = resolveName(name);//处理路径
         ClassLoader cl = getClassLoader0();
         if (cl==null) {
             // A system class.
@@ -2388,19 +2411,19 @@ public final class Class<T> implements java.io.Serializable,
         if (name == null) {
             return name;
         }
-        if (!name.startsWith("/")) {
+        if (!name.startsWith("/")) {// 如果不是以/开头的
             Class<?> c = this;
             while (c.isArray()) {
                 c = c.getComponentType();
             }
-            String baseName = c.getName();
+            String baseName = c.getName();//获得当前类的路径
             int index = baseName.lastIndexOf('.');
             if (index != -1) {
                 name = baseName.substring(0, index).replace('.', '/')
                     +"/"+name;
             }
         } else {
-            name = name.substring(1);
+            name = name.substring(1);// 如果是以/开头的, 把 / 去掉
         }
         return name;
     }
@@ -3408,6 +3431,9 @@ public final class Class<T> implements java.io.Serializable,
      * @throws NullPointerException {@inheritDoc}
      * @since 1.5
      */
+    /*
+    获得某一特性类型的Annotation
+     */
     @SuppressWarnings("unchecked")
     public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
         Objects.requireNonNull(annotationClass);
@@ -3429,7 +3455,7 @@ public final class Class<T> implements java.io.Serializable,
      * @throws NullPointerException {@inheritDoc}
      * @since 1.8
      */
-    @Override
+    @Override  //jdk8 中支持多重注解
     public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationClass) {
         Objects.requireNonNull(annotationClass);
 
@@ -3441,6 +3467,9 @@ public final class Class<T> implements java.io.Serializable,
 
     /**
      * @since 1.5
+     */
+    /*
+    获取修饰这个类的 Annotation
      */
     public Annotation[] getAnnotations() {
         return AnnotationParser.toArray(annotationData().annotations);

@@ -1,28 +1,3 @@
-/*
- * Copyright (c) 1994, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
-
 package java.io;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
@@ -47,10 +22,18 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * @author  Arthur van Hoff
  * @since   JDK1.0
  */
+//参考  http://www.cnblogs.com/skywang12345/p/io_12.html
+    /*
+            DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream("a.txt")));
+        System.out.println(dis.readByte());
+
+        如: dis发起一个读的动作,读取一个字节, 但是 BufferedInputStream 发起读取动作,一次性把buffer填充满.
+        然后从buffer中取出一个字节,返回给 dis
+     */
 public
 class BufferedInputStream extends FilterInputStream {
 
-    private static int DEFAULT_BUFFER_SIZE = 8192;
+    private static int DEFAULT_BUFFER_SIZE = 8192; //8k
 
     /**
      * The maximum size of array to allocate.
@@ -65,7 +48,7 @@ class BufferedInputStream extends FilterInputStream {
      * it may be replaced by another array of
      * a different size.
      */
-    protected volatile byte buf[];
+    protected volatile byte buf[];// 在构造函数中初始化,可以指定长度,默认为8k
 
     /**
      * Atomic updater to provide compareAndSet for buf. This is
@@ -87,7 +70,7 @@ class BufferedInputStream extends FilterInputStream {
      * </code>contain buffered input data obtained
      * from the underlying  input stream.
      */
-    protected int count;
+    protected int count;//结束位置的下标索引+1
 
     /**
      * The current position in the buffer. This is the index of the next
@@ -210,11 +193,12 @@ class BufferedInputStream extends FilterInputStream {
      * This method also assumes that all data has already been read in,
      * hence pos > count.
      */
+    //填充内容的缓冲区
     private void fill() throws IOException {
         byte[] buffer = getBufIfOpen();
         if (markpos < 0)
             pos = 0;            /* no mark: throw away the buffer */
-        else if (pos >= buffer.length)  /* no room left in buffer */
+        else if (pos >= buffer.length) { /* no room left in buffer */  //拷贝数组,对limit,pos位置进行修改
             if (markpos > 0) {  /* can throw away early part of the buffer */
                 int sz = pos - markpos;
                 System.arraycopy(buffer, markpos, buffer, 0, sz);
@@ -227,7 +211,7 @@ class BufferedInputStream extends FilterInputStream {
                 throw new OutOfMemoryError("Required array size too large");
             } else {            /* grow buffer */
                 int nsz = (pos <= MAX_BUFFER_SIZE - pos) ?
-                        pos * 2 : MAX_BUFFER_SIZE;
+                                  pos * 2 : MAX_BUFFER_SIZE;
                 if (nsz > marklimit)
                     nsz = marklimit;
                 byte nbuf[] = new byte[nsz];
@@ -242,8 +226,9 @@ class BufferedInputStream extends FilterInputStream {
                 }
                 buffer = nbuf;
             }
+        }
         count = pos;
-        int n = getInIfOpen().read(buffer, pos, buffer.length - pos);
+        int n = getInIfOpen().read(buffer, pos, buffer.length - pos);//第一次读取填满整个缓冲区
         if (n > 0)
             count = n + pos;
     }
@@ -274,22 +259,25 @@ class BufferedInputStream extends FilterInputStream {
      * stream at most once if necessary.
      */
     private int read1(byte[] b, int off, int len) throws IOException {
-        int avail = count - pos;
-        if (avail <= 0) {
+        int avail = count - pos;//buf可读的字节数
+        if (avail <= 0) {//两种情况: 1 第一次读取   2 第n次读取, 缓存区中的内容的读完了
             /* If the requested length is at least as large as the buffer, and
                if there is no mark/reset activity, do not bother to copy the
                bytes into the local buffer.  In this way buffered streams will
                cascade harmlessly. */
+            //如果要求读取的长度比缓冲区的长度达,并且没有重置markpos
+//            则直接从原始输入流中进行读取，从而避免无谓的COPY（从原始输入流至缓冲区，读取缓冲区全部数据，清空缓冲区，
+//               重新填入原始输入流数据）
             if (len >= getBufIfOpen().length && markpos < 0) {
                 return getInIfOpen().read(b, off, len);
             }
-            fill();
+            fill();  // 先把缓冲区填满
             avail = count - pos;
             if (avail <= 0) return -1;
         }
         int cnt = (avail < len) ? avail : len;
-        System.arraycopy(getBufIfOpen(), pos, b, off, cnt);
-        pos += cnt;
+        System.arraycopy(getBufIfOpen(), pos, b, off, cnt);//从buffer中拷贝 读取的字节数
+        pos += cnt; //开始位置增加
         return cnt;
     }
 
@@ -341,7 +329,7 @@ class BufferedInputStream extends FilterInputStream {
         }
 
         int n = 0;
-        for (;;) {
+        for (;;) {//循环读,直到填满整个缓冲区或到达流的末尾
             int nread = read1(b, off + n, len - n);
             if (nread <= 0)
                 return (n == 0) ? nread : n;
@@ -442,6 +430,7 @@ class BufferedInputStream extends FilterInputStream {
      *                  method, or an I/O error occurs.
      * @see        java.io.BufferedInputStream#mark(int)
      */
+    // 将“缓冲区”中当前位置重置到mark()所标记的位置
     public synchronized void reset() throws IOException {
         getBufIfOpen(); // Cause exception if closed
         if (markpos < 0)

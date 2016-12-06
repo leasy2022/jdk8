@@ -1,38 +1,3 @@
-/*
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
-
-/*
- *
- *
- *
- *
- *
- * Written by Doug Lea with assistance from members of JCP JSR-166
- * Expert Group and released to the public domain, as explained at
- * http://creativecommons.org/publicdomain/zero/1.0/
- */
-
 package java.util.concurrent.locks;
 import java.util.concurrent.TimeUnit;
 import java.util.Collection;
@@ -103,6 +68,17 @@ import java.util.Collection;
  * @since 1.5
  * @author Doug Lea
  */
+/*
+锁最大的分类: 独占锁 和 共享锁
+
+ReentrantLock 只是封装了一套统一的api, 内部有代理类完成具体的操作;是独占锁
+
+公平锁和非公平锁的区别?
+ */
+    /*
+    ReentrantLock 对象中,有一个volatile 状态码. lock 就是 获得这个状态码.
+    如果lock失败,则将线程放入队列,并挂起;等待唤醒,再次竞争资源.
+     */
 public class ReentrantLock implements Lock, java.io.Serializable {
     private static final long serialVersionUID = 7373984872572414699L;
     /** Synchronizer providing all implementation mechanics */
@@ -112,6 +88,9 @@ public class ReentrantLock implements Lock, java.io.Serializable {
      * Base of synchronization control for this lock. Subclassed
      * into fair and nonfair versions below. Uses AQS state to
      * represent the number of holds on the lock.
+     */
+    /*
+    抽象的静态类,继承了 抽象队列同步器
      */
     abstract static class Sync extends AbstractQueuedSynchronizer {
         private static final long serialVersionUID = -5179523762034025860L;
@@ -130,7 +109,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
             final Thread current = Thread.currentThread();
             int c = getState();
             if (c == 0) {
-                if (compareAndSetState(0, acquires)) {
+                if (compareAndSetState(0, acquires)) {//立刻争抢资源
                     setExclusiveOwnerThread(current);
                     return true;
                 }
@@ -144,18 +123,18 @@ public class ReentrantLock implements Lock, java.io.Serializable {
             }
             return false;
         }
-
+        // 检查线程;  检查状态位
         protected final boolean tryRelease(int releases) {
             int c = getState() - releases;
-            if (Thread.currentThread() != getExclusiveOwnerThread())
+            if (Thread.currentThread() != getExclusiveOwnerThread())//如果释放的线程和获取锁的线程不是同一个，抛出非法监视器状态异常。
                 throw new IllegalMonitorStateException();
             boolean free = false;
-            if (c == 0) {
+            if (c == 0) {//因为是重入的关系，不是每次释放锁c都等于0，直到最后一次释放锁时，才通知AQS不需要再记录哪个线程正在获取锁。
                 free = true;
-                setExclusiveOwnerThread(null);
+                setExclusiveOwnerThread(null);//设置当前占有锁线程为null
             }
             setState(c);
-            return free;
+            return free; // 当 c==0 时,锁被完全释放了
         }
 
         protected final boolean isHeldExclusively() {
@@ -203,7 +182,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
          * acquire on failure.
          */
         final void lock() {
-            if (compareAndSetState(0, 1))
+            if (compareAndSetState(0, 1))//不查看队列有无线程等待;立刻去争抢资源
                 setExclusiveOwnerThread(Thread.currentThread());
             else
                 acquire(1);
@@ -229,17 +208,19 @@ public class ReentrantLock implements Lock, java.io.Serializable {
          * recursive call or no waiters or is first.
          */
         protected final boolean tryAcquire(int acquires) {
-            final Thread current = Thread.currentThread();
-            int c = getState();
-            if (c == 0) {
+            final Thread current = Thread.currentThread();//获取当前线程
+            int c = getState();//获取父类AQS中的标志位, volatile int 类型
+            if (c == 0) {//没有线程占用锁
+                //如果队列中没有其他线程  说明没有线程正在占有锁！
                 if (!hasQueuedPredecessors() &&
-                    compareAndSetState(0, acquires)) {
-                    setExclusiveOwnerThread(current);
+                    compareAndSetState(0, acquires)) { //修改一下状态位，注意：这里的acquires是在lock的时候传递来的，从上面的图中可以知道，这个值是写死的1
+                    //如果通过CAS操作将状态为更新成功则代表当前线程获取锁，因此，将当前线程设置到AQS的一个变量中，说明这个线程拿走了锁。
+                    setExclusiveOwnerThread(current);// 更新exclusiveOwnerThread 变量.  当前占用锁的线程
                     return true;
                 }
             }
-            else if (current == getExclusiveOwnerThread()) {
-                int nextc = c + acquires;
+            else if (current == getExclusiveOwnerThread()) {//实现可重入的逻辑:  申请锁的线程是不是当前持有锁的线程
+                int nextc = c + acquires;//增加状态位
                 if (nextc < 0)
                     throw new Error("Maximum lock count exceeded");
                 setState(nextc);
@@ -252,6 +233,9 @@ public class ReentrantLock implements Lock, java.io.Serializable {
     /**
      * Creates an instance of {@code ReentrantLock}.
      * This is equivalent to using {@code ReentrantLock(false)}.
+     */
+    /*
+    无参构造:默认使用 非公平锁
      */
     public ReentrantLock() {
         sync = new NonfairSync();

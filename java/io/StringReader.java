@@ -35,7 +35,7 @@ package java.io;
 
 public class StringReader extends Reader {
 
-    private String str;
+    private String str;//数据来源是一个字符串
     private int length;
     private int next = 0;
     private int mark = 0;

@@ -39,17 +39,20 @@ import java.util.Arrays;
  * @author      Herb Jellinek
  * @since       JDK1.1
  */
+/*
+
+ */
 public
 class CharArrayWriter extends Writer {
     /**
      * The buffer where data is stored.
      */
-    protected char buf[];
+    protected char buf[]; //缓存, 存储写入的内容
 
     /**
      * The number of chars in the buffer.
      */
-    protected int count;
+    protected int count;  //字符个数
 
     /**
      * Creates a new CharArrayWriter.

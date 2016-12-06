@@ -43,6 +43,8 @@ package java.io;
  * @see     java.io.OutputStream#write(int)
  * @since   JDK1.0
  */
+//博客  http://www.bubuko.com/infodetail-825606.html
+    // 类图: http://www.cnblogs.com/davidgu/archive/2012/06/25/2561078.html
 public abstract class OutputStream implements Closeable, Flushable {
     /**
      * Writes the specified byte to this output stream. The general
@@ -102,6 +104,9 @@ public abstract class OutputStream implements Closeable, Flushable {
      * @exception  IOException  if an I/O error occurs. In particular,
      *             an <code>IOException</code> is thrown if the output
      *             stream is closed.
+     */
+    /*
+    逐个字节写出
      */
     public void write(byte b[], int off, int len) throws IOException {
         if (b == null) {

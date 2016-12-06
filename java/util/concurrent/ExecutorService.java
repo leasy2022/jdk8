@@ -38,10 +38,20 @@ import java.util.List;
 import java.util.Collection;
 
 /**
+ * // 相当于 管理线程的一个容器:
+ *   1 自身的创建,关闭(拒绝线程服务), shutdownNow  shutdown
+ *   2 自身的状态检查:  isShutdown(),  isTerminated
+ *   2 线程启动的各种方法
+ *     a execute,
+ *     b submit(既可以是Runnable,也可以是Callable)
+ *     c 批量提交任务 invoke
  * An {@link Executor} that provides methods to manage termination and
  * methods that can produce a {@link Future} for tracking progress of
  * one or more asynchronous tasks.
  *
+ *  1 shutdown 和 shutdownNow的区别:
+ *    shutdown 拒绝新的任取请求,但是之前提交的任务要执行完,才能关闭
+ *    shutdownNow: 终止正在进行的任务
  * <p>An {@code ExecutorService} can be shut down, which will cause
  * it to reject new tasks.  Two different methods are provided for
  * shutting down an {@code ExecutorService}. The {@link #shutdown}

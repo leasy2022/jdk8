@@ -1462,13 +1462,16 @@ public final class String
      *
      * @return  a hash code value for this object.
      */
+    //
     public int hashCode() {
         int h = hash;
+        //1 hash作为一个成员, 每次调用hashCode(), 都检查h == 0,优化性能,避免重复计算
         if (h == 0 && value.length > 0) {
             char val[] = value;
 
+            //2 遍历整个字符数组
             for (int i = 0; i < value.length; i++) {
-                h = 31 * h + val[i];
+                h = 31 * h + val[i]; //3 字符就是整数
             }
             hash = h;
         }

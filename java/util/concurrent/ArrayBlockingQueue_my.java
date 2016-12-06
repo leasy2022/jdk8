@@ -33,16 +33,14 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-package java.util.concurrent;
+package util.concurrent;
+
+import java.lang.ref.WeakReference;
+import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.AbstractQueue;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.lang.ref.WeakReference;
-import java.util.Spliterators;
-import java.util.Spliterator;
 
 /**
  * A bounded {@linkplain BlockingQueue blocking queue} backed by an
@@ -88,9 +86,9 @@ import java.util.Spliterator;
 4 同LinkedBlockingQueue 相比: 效率低
   因为: 只使用了一个锁;读写都需要竞争.
 5 为什么不使用两个锁?
-  把count,takeIndex, putIndex 定义成原子的, 使用两个锁,把读写分离应该也能实现.
+  如果是用两个锁, 读是读,写是是,那怎么判空判满呢? 判空的下标和判满的下标
  */
-public class ArrayBlockingQueue<E> extends AbstractQueue<E>
+public class ArrayBlockingQueue_my<E> extends AbstractQueue<E>
         implements BlockingQueue<E>, java.io.Serializable {
 
     /**
@@ -102,7 +100,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     private static final long serialVersionUID = -817911632652898426L;
 
     /** The queued items */
-    final Object[] items; //只会初始化一次, final
+    final Object[] items;
 
     // 所有对 takeIndex putIndex count的修改,都是先获取lock
     /** items index for next take, poll, peek or remove */
@@ -123,7 +121,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     final ReentrantLock lock;
 
     /** Condition for waiting takes */
-    private final Condition  ;
+    private final Condition notEmpty;
 
     /** Condition for waiting puts */
     private final Condition notFull;
@@ -247,7 +245,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * @param capacity the capacity of this queue
      * @throws IllegalArgumentException if {@code capacity < 1}
      */
-    public ArrayBlockingQueue(int capacity) {
+    public ArrayBlockingQueue_my(int capacity) {
         this(capacity, false);
     }
 
@@ -261,7 +259,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      *        if {@code false} the access order is unspecified.
      * @throws IllegalArgumentException if {@code capacity < 1}
      */
-    public ArrayBlockingQueue(int capacity, boolean fair) {
+    public ArrayBlockingQueue_my(int capacity, boolean fair) {
         if (capacity <= 0)
             throw new IllegalArgumentException();
         this.items = new Object[capacity];
@@ -286,8 +284,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * @throws NullPointerException if the specified collection or any
      *         of its elements are null
      */
-    public ArrayBlockingQueue(int capacity, boolean fair,
-                              Collection<? extends E> c) {
+    public ArrayBlockingQueue_my(int capacity, boolean fair,
+                                 Collection<? extends E> c) {
         this(capacity, fair);
 
         final ReentrantLock lock = this.lock;
@@ -1070,7 +1068,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         Itr() {
             // assert lock.getHoldCount() == 0;
             lastRet = NONE;
-            final ReentrantLock lock = ArrayBlockingQueue.this.lock;
+            final ReentrantLock lock = ArrayBlockingQueue_my.this.lock;
             lock.lock();
             try {
                 if (count == 0) {
@@ -1079,7 +1077,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                     nextIndex = NONE;
                     prevTakeIndex = DETACHED;
                 } else {
-                    final int takeIndex = ArrayBlockingQueue.this.takeIndex;
+                    final int takeIndex = ArrayBlockingQueue_my.this.takeIndex;
                     prevTakeIndex = takeIndex;
                     nextItem = itemAt(nextIndex = takeIndex);
                     cursor = incCursor(takeIndex);
@@ -1139,7 +1137,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             // assert count > 0;
 
             final int cycles = itrs.cycles;
-            final int takeIndex = ArrayBlockingQueue.this.takeIndex;
+            final int takeIndex = ArrayBlockingQueue_my.this.takeIndex;
             final int prevCycles = this.prevCycles;
             final int prevTakeIndex = this.prevTakeIndex;
 
@@ -1204,7 +1202,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         }
 
         private void noNext() {
-            final ReentrantLock lock = ArrayBlockingQueue.this.lock;
+            final ReentrantLock lock = ArrayBlockingQueue_my.this.lock;
             lock.lock();
             try {
                 // assert cursor == NONE;
@@ -1230,7 +1228,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             final E x = nextItem;
             if (x == null)
                 throw new NoSuchElementException();
-            final ReentrantLock lock = ArrayBlockingQueue.this.lock;
+            final ReentrantLock lock = ArrayBlockingQueue_my.this.lock;
             lock.lock();
             try {
                 if (!isDetached())
@@ -1255,7 +1253,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
 
         public void remove() {
             // assert lock.getHoldCount() == 0;
-            final ReentrantLock lock = ArrayBlockingQueue.this.lock;
+            final ReentrantLock lock = ArrayBlockingQueue_my.this.lock;
             lock.lock();
             try {
                 if (!isDetached())
@@ -1327,7 +1325,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 return true;
 
             final int cycles = itrs.cycles;
-            final int takeIndex = ArrayBlockingQueue.this.takeIndex;
+            final int takeIndex = ArrayBlockingQueue_my.this.takeIndex;
             final int prevCycles = this.prevCycles;
             final int prevTakeIndex = this.prevTakeIndex;
             final int len = items.length;
@@ -1427,5 +1425,3 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
 }
-
-

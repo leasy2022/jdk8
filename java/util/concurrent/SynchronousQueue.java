@@ -1,38 +1,3 @@
-/*
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
-
-/*
- *
- *
- *
- *
- *
- * Written by Doug Lea, Bill Scherer, and Michael Scott with
- * assistance from members of JCP JSR-166 Expert Group and released to
- * the public domain, as explained at
- * http://creativecommons.org/publicdomain/zero/1.0/
- */
 
 package java.util.concurrent;
 import java.util.concurrent.locks.LockSupport;
@@ -80,6 +45,23 @@ import java.util.Spliterators;
  * @since 1.5
  * @author Doug Lea and Bill Scherer and Michael Scott
  * @param <E> the type of elements held in this collection
+ */
+/*
+参考博客: http://www.cnblogs.com/leesf456/p/5560362.html
+
+阻塞队列,与 LinkedBlockingQueue 设置size是1个元素是不同的,这个本质意义上不是容器;这个是线程匹配.
+
+put方法, 如果元素没有被消费,线程会一直阻塞;
+take方法也是,如果没有一个线程put进元素以供take, 线程也会一直阻塞
+
+构造函数:
+ 1 无参数
+ 2 有参数:传入一个boolean, 是使用公平的策略还是使用非公平的策略
+   公平策略:底层数据结构是个队列TransferQueue, 非公平的策略底层数据结构是堆栈TransferStack
+ 3 这个容器存储的单位是Node.  Node包含着线程信息,和线程的类型(取数据还是放数据), 还有数据信息.
+ 4 如果是取数据:
+ 5 如果是放数据:
+ 6 使用cas保证的线程安全
  */
 public class SynchronousQueue<E> extends AbstractQueue<E>
     implements BlockingQueue<E>, java.io.Serializable {
@@ -168,6 +150,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
     abstract static class Transferer<E> {
         /**
          * Performs a put or take.
+         *  如果e是null,则是消费,执行take; 不为null, 是生成,执行put
          *
          * @param e if non-null, the item to be handed to a consumer;
          *          if null, requests that transfer return an item
@@ -179,7 +162,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
          *         the caller can distinguish which of these occurred
          *         by checking Thread.interrupted.
          */
-        abstract E transfer(E e, boolean timed, long nanos);
+        abstract E transfer(E e, boolean timed, long nanos);//既执行put也执行take
     }
 
     /** The number of CPUs, for spin control */
@@ -219,13 +202,15 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
 
         /* Modes for SNodes, ORed together in node fields */
         /** Node represents an unfulfilled consumer */
-        static final int REQUEST    = 0;
+        static final int REQUEST    = 0;        // 表示消费数据的消费者   00
         /** Node represents an unfulfilled producer */
-        static final int DATA       = 1;
+        static final int DATA       = 1;        // 表示生产数据的生产者    01
         /** Node is fulfilling another unfulfilled DATA or REQUEST */
-        static final int FULFILLING = 2;
+        static final int FULFILLING = 2;        // 表示匹配另一个生产者或消费者   10
+
 
         /** Returns true if m has fulfilling bit set. */
+        // 如果是REQUEST\Data,则与后都是0,都返回false; 如果是 FULFILLING 返回true
         static boolean isFulfilling(int m) { return (m & FULFILLING) != 0; }
 
         /** Node class for TransferStacks. */
@@ -258,11 +243,11 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
              */
             boolean tryMatch(SNode s) {
                 if (match == null &&
-                    UNSAFE.compareAndSwapObject(this, matchOffset, null, s)) {
+                    UNSAFE.compareAndSwapObject(this, matchOffset, null, s)) {//替换match
                     Thread w = waiter;
                     if (w != null) {    // waiters need at most one unpark
                         waiter = null;
-                        LockSupport.unpark(w);
+                        LockSupport.unpark(w); //匹配成功,唤醒线程
                     }
                     return true;
                 }
@@ -324,7 +309,8 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
         /**
          * Puts or takes an item.
          */
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings("unchecked")     //timed :false 一直阻塞,如put take方法
+                     // true 是阻塞一定时间或不阻塞, 如offer poll
         E transfer(E e, boolean timed, long nanos) {
             /*
              * Basic algorithm is to loop trying one of three actions:
@@ -352,14 +338,17 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
 
             for (;;) {
                 SNode h = head;
+                 //1 线程1去生产;线程2也去生产
+                // 2 线程1去消费;线程2也去消费
                 if (h == null || h.mode == mode) {  // empty or same-mode
-                    if (timed && nanos <= 0) {      // can't wait
-                        if (h != null && h.isCancelled())
+                    if (timed && nanos <= 0) {      // can't wait 不等待
+                        if (h != null && h.isCancelled()) //
                             casHead(h, h.next);     // pop cancelled node
-                        else
+                        else  //如果h是null,返回; 如果h!=null, 但是是同一种模式,也返回
                             return null;
-                    } else if (casHead(h, s = snode(s, e, h, mode))) {
-                        SNode m = awaitFulfill(s, timed, nanos);
+                        // 构建一个新的节点, 它的next节点,是当前的head; 然后把 head替换
+                    } else if (casHead(h, s = snode(s, e, h, mode))) { //已经存在一个生产或消费节点, 又来个一个同模式的线程
+                        SNode m = awaitFulfill(s, timed, nanos);//等待匹配
                         if (m == s) {               // wait was cancelled
                             clean(s);
                             return null;
@@ -371,7 +360,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
                 } else if (!isFulfilling(h.mode)) { // try to fulfill
                     if (h.isCancelled())            // already cancelled
                         casHead(h, h.next);         // pop and retry
-                    else if (casHead(h, s=snode(s, e, h, FULFILLING|mode))) {
+                    else if (casHead(h, s=snode(s, e, h, FULFILLING|mode))) {// 用正在匹配的节点替换头节点
                         for (;;) { // loop until matched or waiters disappear
                             SNode m = s.next;       // m is s's match
                             if (m == null) {        // all waiters are gone
@@ -436,17 +425,17 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
             final long deadline = timed ? System.nanoTime() + nanos : 0L;
             Thread w = Thread.currentThread();
             int spins = (shouldSpin(s) ?
-                         (timed ? maxTimedSpins : maxUntimedSpins) : 0);
+                         (timed ? maxTimedSpins : maxUntimedSpins) : 0);//在挂起线程前,尝试次数
             for (;;) {
                 if (w.isInterrupted())
                     s.tryCancel();
                 SNode m = s.match;
                 if (m != null)
                     return m;
-                if (timed) {
+                if (timed) { // 如果是阻塞一定时间的api
                     nanos = deadline - System.nanoTime();
                     if (nanos <= 0L) {
-                        s.tryCancel();
+                        s.tryCancel();//把匹配的节点设置为自己,即为取消
                         continue;
                     }
                 }
@@ -454,9 +443,9 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
                     spins = shouldSpin(s) ? (spins-1) : 0;
                 else if (s.waiter == null)
                     s.waiter = w; // establish waiter so can park next iter
-                else if (!timed)
+                else if (!timed)//如果是 一直阻塞的api
                     LockSupport.park(this);
-                else if (nanos > spinForTimeoutThreshold)
+                else if (nanos > spinForTimeoutThreshold)//如果是阻塞一定时间的api
                     LockSupport.parkNanos(this, nanos);
             }
         }
@@ -861,7 +850,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
      * @param fair if true, waiting threads contend in FIFO order for
      *        access; otherwise the order is unspecified.
      */
-    public SynchronousQueue(boolean fair) {
+    public SynchronousQueue(boolean fair) {//如果是公平, 则保证FIFO, 使用TransferQueue; 否则,使用TransferStack
         transferer = fair ? new TransferQueue<E>() : new TransferStack<E>();
     }
 
@@ -907,6 +896,9 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
      * @return {@code true} if the element was added to this queue, else
      *         {@code false}
      * @throws NullPointerException if the specified element is null
+     */
+    /*
+    如果放不进去,会阻塞
      */
     public boolean offer(E e) {
         if (e == null) throw new NullPointerException();
@@ -961,6 +953,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
      *
      * @return {@code true}
      */
+    //总是返回true
     public boolean isEmpty() {
         return true;
     }

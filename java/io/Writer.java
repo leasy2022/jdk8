@@ -1,28 +1,3 @@
-/*
- * Copyright (c) 1996, 2011, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
-
 package java.io;
 
 
@@ -46,7 +21,9 @@ package java.io;
  * @author      Mark Reinhold
  * @since       JDK1.1
  */
+/*
 
+ */
 public abstract class Writer implements Appendable, Closeable, Flushable {
 
     /**
@@ -104,12 +81,16 @@ public abstract class Writer implements Appendable, Closeable, Flushable {
      * @throws  IOException
      *          If an I/O error occurs
      */
+    /*
+    写入一个字符:
+    转换成字符数组, 调动重载的方法
+     */
     public void write(int c) throws IOException {
         synchronized (lock) {
             if (writeBuffer == null){
                 writeBuffer = new char[WRITE_BUFFER_SIZE];
             }
-            writeBuffer[0] = (char) c;
+            writeBuffer[0] = (char) c; //强制类型转换, int->char  只保留低16位,高16位舍弃
             write(writeBuffer, 0, 1);
         }
     }

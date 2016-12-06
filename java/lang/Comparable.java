@@ -133,5 +133,8 @@ public interface Comparable<T> {
      * @throws ClassCastException if the specified object's type prevents it
      *         from being compared to this object.
      */
+    /*
+    强烈建议: compareTo 比较相同时,equals方法也相同
+     */
     public int compareTo(T o);
 }

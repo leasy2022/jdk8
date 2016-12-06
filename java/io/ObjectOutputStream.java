@@ -159,8 +159,11 @@ import sun.reflect.misc.ReflectUtil;
  * @see <a href="../../../platform/serialization/spec/output.html">Object Serialization Specification, Section 2, Object Output Classes</a>
  * @since       JDK1.1
  */
+//参考博客: http://www.cnblogs.com/skywang12345/p/io_05.html
+//ObjectInputStream 和 ObjectOutputStream 的作用是，对基本数据和对象进行序列化操作支持。
+    // 因此只有支持 java.io.Serializable 或 java.io.Externalizable 接口的对象才能被ObjectInputStream/ObjectOutputStream所操作！
 public class ObjectOutputStream
-    extends OutputStream implements ObjectOutput, ObjectStreamConstants
+    extends OutputStream implements ObjectOutput, ObjectStreamConstants  //一堆常量的接口
 {
 
     private static class Caches {

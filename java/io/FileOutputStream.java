@@ -49,6 +49,7 @@ import sun.nio.ch.FileChannelImpl;
  * @see     java.nio.file.Files#newOutputStream
  * @since   JDK1.0
  */
+
 public
 class FileOutputStream extends OutputStream
 {
@@ -286,6 +287,7 @@ class FileOutputStream extends OutputStream
      * @param      b   the byte to be written.
      * @exception  IOException  if an I/O error occurs.
      */
+    // 写入一个byte类型的 数据, 参数是int
     public void write(int b) throws IOException {
         write(b, append);
     }

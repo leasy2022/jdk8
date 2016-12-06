@@ -71,6 +71,11 @@ import java.util.function.Supplier;
  * @author  Josh Bloch and Doug Lea
  * @since   1.2
  */
+/*
+每一个Thread,都有threadLocals成员变量. 在get或set等操作中,对应的是这个线程的threadLocals成员变量,是一个ThreadLocalMap.
+其中的key是this对象.
+即,虽然 ThreadLocal 对象相同, 但都是在自己线程的threadLocals中操作.
+ */
 public class ThreadLocal<T> {
     /**
      * ThreadLocals rely on per-thread linear-probe hash maps attached
@@ -123,6 +128,10 @@ public class ThreadLocal<T> {
      *
      * @return the initial value for this thread-local
      */
+    /*
+    initialValue() 初始化函数
+    首次调用前, 要么重写这个函数; 要么使用set方法设置值
+     */
     protected T initialValue() {
         return null;
     }
@@ -159,8 +168,9 @@ public class ThreadLocal<T> {
     public T get() {
         Thread t = Thread.currentThread();
         ThreadLocalMap map = getMap(t);
+        //如果map不为空，说明该线程已经有了一个ThreadLocalMap实例. 即threadLocals 已经被赋值
         if (map != null) {
-            ThreadLocalMap.Entry e = map.getEntry(this);
+            ThreadLocalMap.Entry e = map.getEntry(this); //注意这个地方:参数不是线程,而是对象
             if (e != null) {
                 @SuppressWarnings("unchecked")
                 T result = (T)e.value;
@@ -230,7 +240,7 @@ public class ThreadLocal<T> {
      * @return the map
      */
     ThreadLocalMap getMap(Thread t) {
-        return t.threadLocals;
+        return t.threadLocals;//线程中的成员变量
     }
 
     /**
@@ -240,6 +250,8 @@ public class ThreadLocal<T> {
      * @param t the current thread
      * @param firstValue value for the initial entry of the map
      */
+    // Thread中有成员变量:threadLocals, 在此赋值
+    // ThreadLocal类是一个封装;
     void createMap(Thread t, T firstValue) {
         t.threadLocals = new ThreadLocalMap(this, firstValue);
     }

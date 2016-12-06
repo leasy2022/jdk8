@@ -61,9 +61,22 @@ import java.util.concurrent.locks.LockSupport;
  * @param <V> The result type returned by this FutureTask's {@code get} methods
  */
 // 实现了RunnableFuture 接口, 既是Runnable 又是Future,
-    //既可以作为Runnable被线程执行，又可以作为Future得到Callable的返回值。
+    //既是一个任务执行单元task, Runnable被线程执行，又可以作为Future得到Callable的返回值。
     //FutureTask是Future接口的一个唯一实现类
     //http://www.cnblogs.com/dolphin0520/p/3949310.html
+    /*
+    是 Callable(任务执行) 和 Object(结果) 的封装
+    当调用run()方法的时候, 实际调用 Callable 中的 call()方法
+
+    关注: 怎么实现的获取结果阻塞  get()
+
+ 1 成员变量:
+   Callable(如果构造函数中传入的Runnable,则转换为Callable), state(任务状态)
+
+ 2 执行流程
+   首先是一个Runnable, 需要封装成Thread 或 在线程池中调用; start后,会启动一个线程执行到run(),并把结果放入outcome.
+   其实是一个Future,
+     */
 public class FutureTask<V> implements RunnableFuture<V> {
     /*
      * Revision notes: This differs from previous versions of this
@@ -105,9 +118,12 @@ public class FutureTask<V> implements RunnableFuture<V> {
     /** The underlying callable; nulled out after running */
     private Callable<V> callable;
     /** The result to return or exception to throw from get() */
+    /*
+    存储执行的结果; 如发生异常时,赋值为Throwable
+     */
     private Object outcome; // non-volatile, protected by state reads/writes
     /** The thread running the callable; CASed during run() */
-    private volatile Thread runner;
+    private volatile Thread runner; //同true/false一样, 判断有没有线程再执行
     /** Treiber stack of waiting threads */
     private volatile WaitNode waiters;
 
@@ -119,7 +135,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
     @SuppressWarnings("unchecked")
     private V report(int s) throws ExecutionException {
         Object x = outcome;
-        if (s == NORMAL)
+        if (s == NORMAL)//如果是正常执行完
             return (V)x;
         if (s >= CANCELLED)
             throw new CancellationException();
@@ -191,9 +207,9 @@ public class FutureTask<V> implements RunnableFuture<V> {
      */
     public V get() throws InterruptedException, ExecutionException {
         int s = state;
-        if (s <= COMPLETING)
-            s = awaitDone(false, 0L);
-        return report(s);
+        if (s <= COMPLETING)//如果没有运行完
+            s = awaitDone(false, 0L);//阻塞,返回状态;  归根节底,还是依赖LockSupport
+        return report(s);//s可能是正常的结果,也可能是异常,需要转换
     }
 
     /**
@@ -258,7 +274,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
 
     public void run() {
         if (state != NEW ||
-            !UNSAFE.compareAndSwapObject(this, runnerOffset,
+            !UNSAFE.compareAndSwapObject(this, runnerOffset, //检查runner是不是null, 如果不是null,说明已经有执行
                                          null, Thread.currentThread()))
             return;
         try {
@@ -267,14 +283,14 @@ public class FutureTask<V> implements RunnableFuture<V> {
                 V result;
                 boolean ran;
                 try {
-                    result = c.call();
+                    result = c.call(); //执行任务, 并返回结构
                     ran = true;
                 } catch (Throwable ex) {
                     result = null;
                     ran = false;
                     setException(ex);
                 }
-                if (ran)
+                if (ran) //正常执行成功, 讲结果赋值给outcome
                     set(result);
             }
         } finally {
@@ -397,13 +413,14 @@ public class FutureTask<V> implements RunnableFuture<V> {
      * @param nanos time to wait, if timed
      * @return state upon completion
      */
+    //实现阻塞的关键函数:
     private int awaitDone(boolean timed, long nanos)
         throws InterruptedException {
         final long deadline = timed ? System.nanoTime() + nanos : 0L;
         WaitNode q = null;
         boolean queued = false;
         for (;;) {
-            if (Thread.interrupted()) {
+            if (Thread.interrupted()) {//如果线程被中断,则抛出异常
                 removeWaiter(q);
                 throw new InterruptedException();
             }
@@ -414,14 +431,14 @@ public class FutureTask<V> implements RunnableFuture<V> {
                     q.thread = null;
                 return s;
             }
-            else if (s == COMPLETING) // cannot time out yet
+            else if (s == COMPLETING) // cannot time out yet   正在运行，yield一下,下次再判断。即给程序一个时间片的运行时间,如果还没有结束,再挂起线程
                 Thread.yield();
             else if (q == null)
                 q = new WaitNode();
             else if (!queued)
                 queued = UNSAFE.compareAndSwapObject(this, waitersOffset,
                                                      q.next = waiters, q);
-            else if (timed) {
+            else if (timed) {//如果有时间限制
                 nanos = deadline - System.nanoTime();
                 if (nanos <= 0L) {
                     removeWaiter(q);
@@ -430,7 +447,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
                 LockSupport.parkNanos(this, nanos);
             }
             else
-                LockSupport.park(this);
+                LockSupport.park(this);//挂起线程;什么时候被唤醒呢??
         }
     }
 

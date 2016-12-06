@@ -1,28 +1,3 @@
-/*
- * Copyright (c) 1994, 2004, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
-
 package java.io;
 
 /**
@@ -34,6 +9,7 @@ package java.io;
  * @see     java.io.DataInputStream
  * @since   JDK1.0
  */
+//学习博客:  http://www.cnblogs.com/skywang12345/p/io_15.html
 public
 class DataOutputStream extends FilterOutputStream implements DataOutput {
     /**
@@ -178,8 +154,10 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.FilterOutputStream#out
      */
+    // 将char类型的值写入到“数据输出流”中
+    // 注意：char占2个字节
     public final void writeChar(int v) throws IOException {
-        out.write((v >>> 8) & 0xFF);
+        out.write((v >>> 8) & 0xFF);//得到一个字节
         out.write((v >>> 0) & 0xFF);
         incCount(2);
     }

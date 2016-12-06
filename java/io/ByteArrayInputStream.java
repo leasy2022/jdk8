@@ -40,6 +40,10 @@ package java.io;
  * @see     java.io.StringBufferInputStream
  * @since   JDK1.0
  */
+/*
+构建函数传入一个字节数组作为参数.
+input 使用read api;  读取的是字节数组中的内容
+ */
 public
 class ByteArrayInputStream extends InputStream {
 
@@ -60,6 +64,7 @@ class ByteArrayInputStream extends InputStream {
      * The next byte to be read from the input stream buffer
      * will be <code>buf[pos]</code>.
      */
+    //buf的 元素位置
     protected int pos;
 
     /**
@@ -86,7 +91,7 @@ class ByteArrayInputStream extends InputStream {
      * the last byte within <code>buf</code> that
      * can ever be read  from the input stream buffer.
      */
-    protected int count;
+    protected int count; // 最后的下标+1,  其值于 长度
 
     /**
      * Creates a <code>ByteArrayInputStream</code>
@@ -99,6 +104,10 @@ class ByteArrayInputStream extends InputStream {
      * <code>buf</code>.
      *
      * @param   buf   the input buffer.
+     */
+    /*
+    字节数组作为数据源.
+    read的时候读取字节数组的内容.
      */
     public ByteArrayInputStream(byte buf[]) {
         this.buf = buf;
@@ -123,7 +132,7 @@ class ByteArrayInputStream extends InputStream {
     public ByteArrayInputStream(byte buf[], int offset, int length) {
         this.buf = buf;
         this.pos = offset;
-        this.count = Math.min(offset + length, buf.length);
+        this.count = Math.min(offset + length, buf.length);//传入的是length, 转换成
         this.mark = offset;
     }
 
@@ -140,7 +149,7 @@ class ByteArrayInputStream extends InputStream {
      * @return  the next byte of data, or <code>-1</code> if the end of the
      *          stream has been reached.
      */
-    public synchronized int read() {
+    public synchronized int read() { //读取字节数组中的 一个字节内容
         return (pos < count) ? (buf[pos++] & 0xff) : -1;
     }
 
@@ -172,6 +181,11 @@ class ByteArrayInputStream extends InputStream {
      * @exception  IndexOutOfBoundsException If <code>off</code> is negative,
      * <code>len</code> is negative, or <code>len</code> is greater than
      * <code>b.length - off</code>
+     */
+    /*
+    参数是一个字节数组.
+    使用System.arraycopy 拷贝.
+
      */
     public synchronized int read(byte b[], int off, int len) {
         if (b == null) {
@@ -258,6 +272,9 @@ class ByteArrayInputStream extends InputStream {
      *
      * @since   JDK1.1
      */
+    /*
+    一般,mark和reset一起使用.  mark是记录当前读取到位置;  reset时,会重新从记录的位置开始读取
+     */
     public void mark(int readAheadLimit) {
         mark = pos;
     }
@@ -266,6 +283,9 @@ class ByteArrayInputStream extends InputStream {
      * Resets the buffer to the marked position.  The marked position
      * is 0 unless another position was marked or an offset was specified
      * in the constructor.
+     */
+    /*
+    把mark的值赋值给pos
      */
     public synchronized void reset() {
         pos = mark;

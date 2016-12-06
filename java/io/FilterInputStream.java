@@ -42,12 +42,16 @@ package java.io;
  * @author  Jonathan Payne
  * @since   JDK1.0
  */
+/*
+过滤流:
+特点:即构造函数传入其他流, 有一个成员变量是InputStream
+ */
 public
 class FilterInputStream extends InputStream {
     /**
      * The input stream to be filtered.
      */
-    protected volatile InputStream in;
+    protected volatile InputStream in; // 只是增加了一个成员变量
 
     /**
      * Creates a <code>FilterInputStream</code>
@@ -78,6 +82,9 @@ class FilterInputStream extends InputStream {
      *             stream is reached.
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.FilterInputStream#in
+     */
+    /*
+    读取一个字节的内容: 正常返回0-255; 如果已经读完,返回-1
      */
     public int read() throws IOException {
         return in.read();

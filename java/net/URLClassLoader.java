@@ -70,6 +70,11 @@ import sun.security.util.SecurityConstants;
  * @author  David Connelly
  * @since   1.2
  */
+/*
+从指定的jar或路径加载类和资源
+1 以/结尾的认为是目录
+2 不以/结尾的认为是jar包
+ */
 public class URLClassLoader extends SecureClassLoader implements Closeable {
     /* The search path for classes and resources */
     private final URLClassPath ucp;
@@ -96,7 +101,7 @@ public class URLClassLoader extends SecureClassLoader implements Closeable {
      * @exception  NullPointerException if {@code urls} is {@code null}.
      * @see SecurityManager#checkCreateClassLoader
      */
-    public URLClassLoader(URL[] urls, ClassLoader parent) {
+    public URLClassLoader(URL[] urls, ClassLoader parent) {//加载类时,会按照先后顺序搜索
         super(parent);
         // this is to make the stack depth consistent with 1.1
         SecurityManager security = System.getSecurityManager();

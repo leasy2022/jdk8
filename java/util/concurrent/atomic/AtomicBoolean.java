@@ -54,13 +54,18 @@ public class AtomicBoolean implements java.io.Serializable {
     private static final long valueOffset;
 
     static {
-        try {
+        try {//1 使用反射获得成员变量"value"
+            // 2 得到"value"在内存中的偏移量, 直接操作内存空间,实现对字段value的操作
             valueOffset = unsafe.objectFieldOffset
                 (AtomicBoolean.class.getDeclaredField("value"));
         } catch (Exception ex) { throw new Error(ex); }
     }
-
-    private volatile int value;
+    /*
+    实现AtomicBoolean两个条件:
+    1 一旦更新,所有的线程读取最新的值
+    2 多线程同步更新
+     */
+    private volatile int value; //3 volatile使其他线程可见(满足第一个条件)
 
     /**
      * Creates a new {@code AtomicBoolean} with the given initial value.
@@ -68,13 +73,13 @@ public class AtomicBoolean implements java.io.Serializable {
      * @param initialValue the initial value
      */
     public AtomicBoolean(boolean initialValue) {
-        value = initialValue ? 1 : 0;
+        value = initialValue ? 1 : 0; //4 value的值,要么是1(true),要么是0(false)
     }
 
     /**
      * Creates a new {@code AtomicBoolean} with initial value {@code false}.
      */
-    public AtomicBoolean() {
+    public AtomicBoolean() { // 默认是false
     }
 
     /**
@@ -95,9 +100,10 @@ public class AtomicBoolean implements java.io.Serializable {
      * @return {@code true} if successful. False return indicates that
      * the actual value was not equal to the expected value.
      */
-    public final boolean compareAndSet(boolean expect, boolean update) { // 把比较和赋值 一起组合也为原子操作,返回boolean
+    public final boolean compareAndSet(boolean expect, boolean update) { //5 把比较和赋值 一起组合也为原子操作,返回boolean
         int e = expect ? 1 : 0;
         int u = update ? 1 : 0;
+        // 6 CAS多线程同步更新.  这是个阻塞函数,线程会不断尝试执行,直至成功
         return unsafe.compareAndSwapInt(this, valueOffset, e, u);
     }
 
@@ -124,6 +130,7 @@ public class AtomicBoolean implements java.io.Serializable {
      *
      * @param newValue the new value
      */
+    //设置新值,
     public final void set(boolean newValue) {
         value = newValue ? 1 : 0;
     }

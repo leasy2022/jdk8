@@ -89,6 +89,15 @@ import java.util.function.Consumer;
  * @author Martin Buchholz
  * @param <E> the type of elements held in this collection
  */
+/*
+1 Node类中,既有前驱也有后继,是个双向链表. 可以对头尾进行操作
+2 都有哪些api?
+  a 对头部的操作:  addFirst,
+  b 对尾部的操作:  add,addLast,
+2 是无界的
+3
+4 怎么实现的并发?
+ */
 public class ConcurrentLinkedDeque<E>
     extends AbstractCollection<E>
     implements Deque<E>, java.io.Serializable {
@@ -381,6 +390,9 @@ public class ConcurrentLinkedDeque<E>
 
     /**
      * Links e as last element.
+     */
+    /*
+    不管是add还是offer, 对尾部的添加,都是这个函数
      */
     private void linkLast(E e) {
         checkNotNull(e);
@@ -1017,6 +1029,9 @@ public class ConcurrentLinkedDeque<E>
      *
      * @return {@code true} (as specified by {@link Collection#add})
      * @throws NullPointerException if the specified element is null
+     */
+    /*
+    无界队列,从尾部添加
      */
     public boolean add(E e) {
         return offerLast(e);

@@ -160,6 +160,14 @@ import java.io.IOException;
  * @see     Hashtable
  * @since   1.4
  */
+/*
+
+继承自 HashMap
+1 在put的时候, 调动HashMap的put方法, 只是在生成节点的时候,调用重写的 newNode 方法.
+  同时在 newNode() 方法中 调用linkNodeLast(), 除了 HashMap 保存一份数据,  在 LinkedHashMap 中也保存一份双向链表.
+  用空间(双份)数据,换取快速的随机查询效率.(在Hashmap中查询)
+
+ */
 public class LinkedHashMap<K,V>
     extends HashMap<K,V>
     implements Map<K,V>
@@ -188,6 +196,9 @@ public class LinkedHashMap<K,V>
 
     /**
      * HashMap.Node subclass for normal LinkedHashMap entries.
+     */
+    /*
+    多了一个前驱和后继
      */
     static class Entry<K,V> extends HashMap.Node<K,V> {
         Entry<K,V> before, after;
@@ -219,6 +230,9 @@ public class LinkedHashMap<K,V>
     // internal utilities
 
     // link at the end of list
+    /*
+    在双向链表尾部添加
+     */
     private void linkNodeLast(LinkedHashMap.Entry<K,V> p) {
         LinkedHashMap.Entry<K,V> last = tail;
         tail = p;

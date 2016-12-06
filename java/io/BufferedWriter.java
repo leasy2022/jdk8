@@ -68,7 +68,7 @@ public class BufferedWriter extends Writer {
     private Writer out;
 
     private char cb[];
-    private int nChars, nextChar;
+    private int nChars, nextChar; //nChars是 字符数组的长度; nextChar 是读取的下一个下标
 
     private static int defaultCharBufferSize = 8192;
 

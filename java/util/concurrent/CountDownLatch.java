@@ -32,7 +32,10 @@
  * Expert Group and released to the public domain, as explained at
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
-
+/*
+博客:
+http://www.infoq.com/cn/articles/java8-abstractqueuedsynchronizer
+ */
 package java.util.concurrent;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
@@ -161,7 +164,7 @@ public class CountDownLatch {
     private static final class Sync extends AbstractQueuedSynchronizer {
         private static final long serialVersionUID = 4982264981922014374L;
 
-        Sync(int count) {
+        Sync(int count) { //设置同步状态位的值
             setState(count);
         }
 
@@ -227,6 +230,7 @@ public class CountDownLatch {
      * @throws InterruptedException if the current thread is interrupted
      *         while waiting
      */
+    // 调用await()方法的不一定是主线程, 多个线程可以调用
     public void await() throws InterruptedException {
         sync.acquireSharedInterruptibly(1);
     }

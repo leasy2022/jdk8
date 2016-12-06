@@ -125,6 +125,11 @@ package java.util.concurrent;
  * @since 1.5
  * @author Doug Lea
  */
+/*
+发起执行的动作
+1 Thread.start
+2 Executor.execute()
+ */
 public interface Executor {
 
     /**

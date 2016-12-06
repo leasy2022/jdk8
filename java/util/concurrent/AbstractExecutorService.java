@@ -98,6 +98,9 @@ public abstract class AbstractExecutorService implements ExecutorService {
      * cancellation of the underlying task
      * @since 1.6
      */
+    /*
+    把Callable转换成为Runnable
+     */
     protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
         return new FutureTask<T>(callable);
     }
@@ -105,6 +108,11 @@ public abstract class AbstractExecutorService implements ExecutorService {
     /**
      * @throws RejectedExecutionException {@inheritDoc}
      * @throws NullPointerException       {@inheritDoc}
+     */
+    /*
+    submit 最终调用的是具体实现类的execute(Runnable) 方法; 但是如果是callable,结果怎么获得呢?
+    统一把 task封装成 FutureTask()对象; 而FutureTask 中成员变量为Runnable,还需要再把Callable转换为Runnable
+    (即,Runnable和Callable可以互相转换, Runnable->Callable通过适配器; Callable->Runnable通过FutureTask
      */
     public Future<?> submit(Runnable task) {
         if (task == null) throw new NullPointerException();
@@ -225,29 +233,34 @@ public abstract class AbstractExecutorService implements ExecutorService {
         return doInvokeAny(tasks, true, unit.toNanos(timeout));
     }
 
+    //总体思路: 一一提交任务, 等待返回结果
     public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
         throws InterruptedException {
         if (tasks == null)
             throw new NullPointerException();
+        // 存放线程的执行结果
         ArrayList<Future<T>> futures = new ArrayList<Future<T>>(tasks.size());
         boolean done = false;
         try {
             for (Callable<T> t : tasks) {
                 RunnableFuture<T> f = newTaskFor(t);
                 futures.add(f);
+                //不同的线程池,不同的实现方式
                 execute(f);
             }
             for (int i = 0, size = futures.size(); i < size; i++) {
                 Future<T> f = futures.get(i);
+                // 是否线程执行完毕, 如果没有执行完毕,则调用get()
                 if (!f.isDone()) {
                     try {
-                        f.get();
+                        f.get();//阻塞至执行完毕
                     } catch (CancellationException ignore) {
                     } catch (ExecutionException ignore) {
                     }
                 }
             }
             done = true;
+            // 只有所有的线程都执行完, 才返回
             return futures;
         } finally {
             if (!done)
@@ -261,6 +274,7 @@ public abstract class AbstractExecutorService implements ExecutorService {
         throws InterruptedException {
         if (tasks == null)
             throw new NullPointerException();
+        // 转换成纳秒
         long nanos = unit.toNanos(timeout);
         ArrayList<Future<T>> futures = new ArrayList<Future<T>>(tasks.size());
         boolean done = false;
@@ -286,7 +300,7 @@ public abstract class AbstractExecutorService implements ExecutorService {
                     if (nanos <= 0L)
                         return futures;
                     try {
-                        f.get(nanos, TimeUnit.NANOSECONDS);
+                        f.get(nanos, TimeUnit.NANOSECONDS);//
                     } catch (CancellationException ignore) {
                     } catch (ExecutionException ignore) {
                     } catch (TimeoutException toe) {

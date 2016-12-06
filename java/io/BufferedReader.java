@@ -66,7 +66,11 @@ import java.util.stream.StreamSupport;
  * @author      Mark Reinhold
  * @since       JDK1.1
  */
-
+//http://www.cnblogs.com/skywang12345/p/io_23.html
+    /*
+    同  BufferedInputstream 类似, 都是缓冲流
+    不同的是: 1 缓冲区是 字符数组 char[]    2  包装的是Reader
+     */
 public class BufferedReader extends Reader {
 
     private Reader in;
@@ -85,7 +89,7 @@ public class BufferedReader extends Reader {
     /** The skipLF flag when the mark was set */
     private boolean markedSkipLF = false;
 
-    private static int defaultCharBufferSize = 8192;
+    private static int defaultCharBufferSize = 8192; //8k
     private static int defaultExpectedLineLength = 80;
 
     /**
@@ -333,7 +337,7 @@ public class BufferedReader extends Reader {
                 int i;
 
                 /* Skip a leftover '\n', if necessary */
-                if (omitLF && (cb[nextChar] == '\n'))
+                if (omitLF && (cb[nextChar] == '\n')) //匹配 换行字符
                     nextChar++;
                 skipLF = false;
                 omitLF = false;

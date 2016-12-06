@@ -138,7 +138,7 @@ public class Collections {
      */
     @SuppressWarnings("unchecked")
     public static <T extends Comparable<? super T>> void sort(List<T> list) {
-        list.sort(null);
+        list.sort(null);// 最终调用传入参数List的自己的排序实现
     }
 
     /**
@@ -172,7 +172,7 @@ public class Collections {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T> void sort(List<T> list, Comparator<? super T> c) {
-        list.sort(c);
+        list.sort(c);//传入了比较器
     }
 
 
@@ -207,7 +207,7 @@ public class Collections {
      *         integers), or the search key is not mutually comparable
      *         with the elements of the list.
      */
-    public static <T>
+    public static <T> //1 传入的list必须是按照升序排好序的   2 如果有多个相同的元素,不确定返回哪个
     int binarySearch(List<? extends Comparable<? super T>> list, T key) {
         if (list instanceof RandomAccess || list.size()<BINARYSEARCH_THRESHOLD)
             return Collections.indexedBinarySearch(list, key);
@@ -549,6 +549,9 @@ public class Collections {
      *         to contain the entire source List.
      * @throws UnsupportedOperationException if the destination list's
      *         list-iterator does not support the <tt>set</tt> operation.
+     */
+    /*
+    list的拷贝: 使用的是元素逐一遍历的方式. 如果对于ArrayList,这个效率比较低,不如使用System.arraycopy()
      */
     public static <T> void copy(List<? super T> dest, List<? extends T> src) {
         int srcSize = src.size();

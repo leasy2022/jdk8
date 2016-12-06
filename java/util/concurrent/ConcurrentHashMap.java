@@ -264,6 +264,13 @@ import java.util.stream.Stream;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  */
+/*
+博客:
+http://blog.csdn.net/u010723709/article/details/48007881
+
+底层数据结构:  数组+链表
+dk7同jdk8实现不同；jdk7使用分段锁；jdk8锁住每个链表的头节点
+ */
 public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     implements ConcurrentMap<K,V>, Serializable {
     private static final long serialVersionUID = 7249069246763182397L;
@@ -681,6 +688,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * to incorporate impact of the highest bits that would otherwise
      * never be used in index calculations because of table bounds.
      */
+    // 对key的hashcode 做 spread
     static final int spread(int h) {
         return (h ^ (h >>> 16)) & HASH_BITS;
     }
@@ -688,6 +696,10 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     /**
      * Returns a power of two table size for the given desired capacity.
      * See Hackers Delight, sec 3.2
+     */
+    /*
+    floor(2的幂次方,c)
+    总是获得 2的幂次方
      */
     private static final int tableSizeFor(int c) {
         int n = c - 1;
@@ -770,6 +782,10 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * The array of bins. Lazily initialized upon first insertion.
      * Size is always a power of two. Accessed directly by iterators.
      */
+    /*
+    底层数组,懒加载的方式, 只有当插入元素的时候才会进行初始化.
+    大小通常是2^n
+     */
     transient volatile Node<K,V>[] table;
 
     /**
@@ -791,6 +807,12 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * when table is null, holds the initial table size to use upon
      * creation, or 0 for default. After initialization, holds the
      * next element count value upon which to resize the table.
+     */
+    /*
+    -1: table正在初始化
+    -N:(N-1)个线程正在扩容
+    0: table is null,还没有被初始化
+    >0: 初始化数组的容量 或 下次扩容容量
      */
     private transient volatile int sizeCtl;
 
@@ -833,12 +855,16 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * @throws IllegalArgumentException if the initial capacity of
      * elements is negative
      */
+    /*
+    根据初始容量给 sizeCtl 赋值
+     */
     public ConcurrentHashMap(int initialCapacity) {
         if (initialCapacity < 0)
             throw new IllegalArgumentException();
+        // 如果 初始值大小 大于等于 最大容量的一半; 则赋值sizeCtl为MAXIMUM_CAPACITY, 否则 下次扩容为 floor( 3/2*(initialCapacity)+1, 2^n), 即最小扩容大于自己的一半
         int cap = ((initialCapacity >= (MAXIMUM_CAPACITY >>> 1)) ?
                    MAXIMUM_CAPACITY :
-                   tableSizeFor(initialCapacity + (initialCapacity >>> 1) + 1));
+                   tableSizeFor(initialCapacity + (initialCapacity >>> 1) + 1)); // 3/2(initialCapacity)+1
         this.sizeCtl = cap;
     }
 
@@ -889,6 +915,9 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * negative or the load factor or concurrencyLevel are
      * nonpositive
      */
+    /*
+    传入参数: 初始容量,  负载因子,  并行度(默认是1)
+     */
     public ConcurrentHashMap(int initialCapacity,
                              float loadFactor, int concurrencyLevel) {
         if (!(loadFactor > 0.0f) || initialCapacity < 0 || concurrencyLevel <= 0)
@@ -935,12 +964,12 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         Node<K,V>[] tab; Node<K,V> e, p; int n, eh; K ek;
         int h = spread(key.hashCode());
         if ((tab = table) != null && (n = tab.length) > 0 &&
-            (e = tabAt(tab, (n - 1) & h)) != null) {
-            if ((eh = e.hash) == h) {
-                if ((ek = e.key) == key || (ek != null && key.equals(ek)))
+            (e = tabAt(tab, (n - 1) & h)) != null) { // 如果tab不为空, 且 产生碰撞
+            if ((eh = e.hash) == h) {//如果链表首部的对象的hash 与查找的相同
+                if ((ek = e.key) == key || (ek != null && key.equals(ek))) //位置相同或equals
                     return e.val;
             }
-            else if (eh < 0)
+            else if (eh < 0) // 这是什么意思??
                 return (p = e.find(h, key)) != null ? p.val : null;
             while ((e = e.next) != null) {
                 if (e.hash == h &&
@@ -1002,30 +1031,37 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      *         {@code null} if there was no mapping for {@code key}
      * @throws NullPointerException if the specified key or value is null
      */
+    /*
+    1 key,value都不能为null, 否则会抛 NullPointerException
+    2 会把之前的key返回来.  如果是首次,则返回null
+     */
     public V put(K key, V value) {
         return putVal(key, value, false);
     }
-
+/*
+put/putIfAbsent 都会在链表上加锁,都是线程安全的; 如果原来有,都会 返回 原来的值
+区别: put 会替换掉已经存在的值; putIfAbsent 不会替换
+ */
     /** Implementation for put and putIfAbsent */
     final V putVal(K key, V value, boolean onlyIfAbsent) {
         if (key == null || value == null) throw new NullPointerException();
         int hash = spread(key.hashCode());
         int binCount = 0;
-        for (Node<K,V>[] tab = table;;) {
+        for (Node<K,V>[] tab = table;;) { //无线循环,直到break
             Node<K,V> f; int n, i, fh;
             if (tab == null || (n = tab.length) == 0)
-                tab = initTable();
-            else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
+                tab = initTable(); //初始化 table
+            else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {//获得在tab中的位置,  如果没有碰撞,为null
                 if (casTabAt(tab, i, null,
-                             new Node<K,V>(hash, key, value, null)))
+                             new Node<K,V>(hash, key, value, null))) // 如果cas操作成功,则成功; 但如果恰好其他线程在这个地方赋值,则失败,重新循环
                     break;                   // no lock when adding to empty bin
             }
             else if ((fh = f.hash) == MOVED)
                 tab = helpTransfer(tab, f);
-            else {
+            else {// 发生碰撞后
                 V oldVal = null;
-                synchronized (f) { //锁住 局部对象, 只对调用这个函数的并发线程有影响
-                    if (tabAt(tab, i) == f) {
+                synchronized (f) { //锁住的是链表的首部对象; 减少锁的范围
+                    if (tabAt(tab, i) == f) {//
                         if (fh >= 0) {
                             binCount = 1;
                             for (Node<K,V> e = f;; ++binCount) {
@@ -1034,7 +1070,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                                     ((ek = e.key) == key ||
                                      (ek != null && key.equals(ek)))) {
                                     oldVal = e.val;
-                                    if (!onlyIfAbsent)
+                                    if (!onlyIfAbsent)//如果是 putIfAbsent,onlyIfAbsent为true, 则 不会替换
                                         e.val = value;
                                     break;
                                 }
@@ -1102,19 +1138,24 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * Replaces node value with v, conditional upon match of cv if
      * non-null.  If resulting value is null, delete.
      */
+    /*
+       value 是 新值; cv 是 旧值
+
+       1 replace\remove 都是调用这个函数
+     */
     final V replaceNode(Object key, V value, Object cv) {
         int hash = spread(key.hashCode());
         for (Node<K,V>[] tab = table;;) {
             Node<K,V> f; int n, i, fh;
             if (tab == null || (n = tab.length) == 0 ||
-                (f = tabAt(tab, i = (n - 1) & hash)) == null)
+                (f = tabAt(tab, i = (n - 1) & hash)) == null) // 如果没有碰撞,则直接退出;返回null
                 break;
             else if ((fh = f.hash) == MOVED)
                 tab = helpTransfer(tab, f);
             else {
                 V oldVal = null;
                 boolean validated = false;
-                synchronized (f) {
+                synchronized (f) {// 锁住链表首部
                     if (tabAt(tab, i) == f) {
                         if (fh >= 0) {
                             validated = true;
@@ -1128,7 +1169,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                                         (ev != null && cv.equals(ev))) {
                                         oldVal = ev;
                                         if (value != null)
-                                            e.val = value;
+                                            e.val = value;  // 这是替换, replace(K key, V value)
                                         else if (pred != null)
                                             pred.next = e.next;
                                         else
@@ -1551,6 +1592,10 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      *
      * @throws NullPointerException if any of the arguments are null
      */
+    /*
+    注意参数的顺序, 调用内部的 repalace 会有调换.
+    三个参数都不能是null
+     */
     public boolean replace(K key, V oldValue, V newValue) {
         if (key == null || oldValue == null || newValue == null)
             throw new NullPointerException();
@@ -1563,6 +1608,12 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * @return the previous value associated with the specified key,
      *         or {@code null} if there was no mapping for the key
      * @throws NullPointerException if the specified key or value is null
+     */
+    /*
+    返回值: 如果之前存在key, 则返回旧的value; 如果第一次, 则返回null
+    1 比较 三个参数的replace
+    2 同 put方法比较.  repalace 是替换, put是增加并修改.
+      repalace 中: key 必须在map中存在, 如果不存在,不会新增,返回null
      */
     public V replace(K key, V value) {
         if (key == null || value == null)
@@ -2224,18 +2275,18 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         Node<K,V>[] tab; int sc;
         while ((tab = table) == null || tab.length == 0) {
             if ((sc = sizeCtl) < 0)
-                Thread.yield(); // lost initialization race; just spin
-            else if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) {
+                Thread.yield(); // lost initialization race; just spin: -1, 说明 有其他线程在做初始化
+            else if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) {//设置sizeCtl为-1
                 try {
                     if ((tab = table) == null || tab.length == 0) {
                         int n = (sc > 0) ? sc : DEFAULT_CAPACITY;
                         @SuppressWarnings("unchecked")
                         Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[n];
                         table = tab = nt;
-                        sc = n - (n >>> 2);
+                        sc = n - (n >>> 2);//n-1/4n=3/4n
                     }
                 } finally {
-                    sizeCtl = sc;
+                    sizeCtl = sc;//0.75n
                 }
                 break;
             }

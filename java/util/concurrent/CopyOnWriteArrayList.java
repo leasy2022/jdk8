@@ -88,6 +88,9 @@ import java.util.function.UnaryOperator;
  * @author Doug Lea
  * @param <E> the type of elements held in this collection
  */
+/*
+参考博客:  http://www.cnblogs.com/leesf456/p/5547853.html
+ */
 public class CopyOnWriteArrayList<E>
     implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
     private static final long serialVersionUID = 8673264195747942595L;
@@ -117,7 +120,7 @@ public class CopyOnWriteArrayList<E>
      * Creates an empty list.
      */
     public CopyOnWriteArrayList() {
-        setArray(new Object[0]);
+        setArray(new Object[0]);//当没有参数时,使用空数组
     }
 
     /**
@@ -130,10 +133,10 @@ public class CopyOnWriteArrayList<E>
      */
     public CopyOnWriteArrayList(Collection<? extends E> c) {
         Object[] elements;
-        if (c.getClass() == CopyOnWriteArrayList.class)
+        if (c.getClass() == CopyOnWriteArrayList.class)//类型相同
             elements = ((CopyOnWriteArrayList<?>)c).getArray();
         else {
-            elements = c.toArray();
+            elements = c.toArray();//由Collection转换成数组
             // c.toArray might (incorrectly) not return Object[] (see 6260652)
             if (elements.getClass() != Object[].class)
                 elements = Arrays.copyOf(elements, elements.length, Object[].class);
@@ -148,6 +151,7 @@ public class CopyOnWriteArrayList<E>
      *        internal array)
      * @throws NullPointerException if the specified array is null
      */
+    //由 数组 来构造,还是要拷贝一份新的
     public CopyOnWriteArrayList(E[] toCopyIn) {
         setArray(Arrays.copyOf(toCopyIn, toCopyIn.length, Object[].class));
     }
@@ -188,7 +192,7 @@ public class CopyOnWriteArrayList<E>
      */
     private static int indexOf(Object o, Object[] elements,
                                int index, int fence) {
-        if (o == null) {
+        if (o == null) { // 元素可以是null
             for (int i = index; i < fence; i++)
                 if (elements[i] == null)
                     return i;
@@ -230,7 +234,7 @@ public class CopyOnWriteArrayList<E>
      * @return {@code true} if this list contains the specified element
      */
     public boolean contains(Object o) {
-        Object[] elements = getArray();
+        Object[] elements = getArray();//保存快照
         return indexOf(o, elements, 0, elements.length) >= 0;
     }
 
@@ -430,6 +434,7 @@ public class CopyOnWriteArrayList<E>
      * @param e element to be appended to this list
      * @return {@code true} (as specified by {@link Collection#add})
      */
+    // 每增加一个元素,都需要拷贝原来的数组到新数组
     public boolean add(E e) {
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -437,8 +442,8 @@ public class CopyOnWriteArrayList<E>
             Object[] elements = getArray();
             int len = elements.length;
             Object[] newElements = Arrays.copyOf(elements, len + 1);
-            newElements[len] = e;
-            setArray(newElements);
+            newElements[len] = e;//新建一个数组,其容量比原来的数组大1;把原的数组内容拷贝过去,然后写入新数据.
+            setArray(newElements);//用新的数组替换旧的数组
             return true;
         } finally {
             lock.unlock();
@@ -609,9 +614,10 @@ public class CopyOnWriteArrayList<E>
      * @return {@code true} if the element was added
      */
     public boolean addIfAbsent(E e) {
-        Object[] snapshot = getArray();
+        Object[] snapshot = getArray();//保存当前的一个快照. 如果当前快照存在,直接返回false.
+                          // (但是数组中的这个元素已经被删除了,这个快照并没删除,因此CopyOnWriteArrayList并不是实时一致性的)
         return indexOf(e, snapshot, 0, snapshot.length) >= 0 ? false :
-            addIfAbsent(e, snapshot);
+            addIfAbsent(e, snapshot);//
     }
 
     /**
@@ -624,7 +630,7 @@ public class CopyOnWriteArrayList<E>
         try {
             Object[] current = getArray();
             int len = current.length;
-            if (snapshot != current) {
+            if (snapshot != current) {//如果不是原来的数组
                 // Optimize for lost race to another addXXX operation
                 int common = Math.min(snapshot.length, len);
                 for (int i = 0; i < common; i++)
@@ -811,7 +817,7 @@ public class CopyOnWriteArrayList<E>
      * @throws NullPointerException if the specified collection is null
      * @see #add(Object)
      */
-    public boolean addAll(Collection<? extends E> c) {
+    public boolean addAll(Collection<? extends E> c) { //写入多个元素
         Object[] cs = (c.getClass() == CopyOnWriteArrayList.class) ?
             ((CopyOnWriteArrayList<?>)c).getArray() : c.toArray();
         if (cs.length == 0)
@@ -826,7 +832,7 @@ public class CopyOnWriteArrayList<E>
             else {
                 Object[] newElements = Arrays.copyOf(elements, len + cs.length);
                 System.arraycopy(cs, 0, newElements, len, cs.length);
-                setArray(newElements);
+                setArray(newElements);//用新的数组替换旧的数组
             }
             return true;
         } finally {
