@@ -1249,8 +1249,8 @@ class Thread implements Runnable {
              2 线程中断
              3 线程结束
     join方法最终还是调用的wait()
-     */
-    public final synchronized void join(long millis)// synchronized + wait实现
+     */ // thread作为了对象监视器(即 子线程的对象作为监视器)
+    public final synchronized void join(long millis)// synchronized + wait实现,
     throws InterruptedException {
         long base = System.currentTimeMillis();
         long now = 0;

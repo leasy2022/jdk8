@@ -333,7 +333,7 @@ public abstract class ClassLoader {
      *          <tt>checkCreateClassLoader</tt> method doesn't allow creation
      *          of a new class loader.
      */
-    protected ClassLoader() {
+    protected ClassLoader() { //无参构造函数: 系统类加载器为父类加载器
         this(checkCreateClassLoader(), getSystemClassLoader());
     }
 
@@ -405,21 +405,21 @@ public abstract class ClassLoader {
     {
         synchronized (getClassLoadingLock(name)) {
             // First, check if the class has already been loaded
-            Class<?> c = findLoadedClass(name);
+            Class<?> c = findLoadedClass(name);//先从缓存中查找
             if (c == null) {
                 long t0 = System.nanoTime();
                 try {
                     if (parent != null) {
-                        c = parent.loadClass(name, false);
+                        c = parent.loadClass(name, false);//先通过父加载器加载
                     } else {
-                        c = findBootstrapClassOrNull(name);
+                        c = findBootstrapClassOrNull(name); // 如果父加载器不存在,则通过bootstrap class loader 加载
                     }
                 } catch (ClassNotFoundException e) {
                     // ClassNotFoundException thrown if class not found
                     // from the non-null parent class loader
                 }
 
-                if (c == null) {
+                if (c == null) { // 如果仍然加载不到
                     // If still not found, then invoke findClass in order
                     // to find the class.
                     long t1 = System.nanoTime();

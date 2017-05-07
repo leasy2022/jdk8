@@ -1162,9 +1162,10 @@ public abstract class ByteBuffer
         if (!(ob instanceof ByteBuffer))
             return false;
         ByteBuffer that = (ByteBuffer)ob;
+        //如果 剩余个数不同,直接返回false
         if (this.remaining() != that.remaining())
             return false;
-        int p = this.position();
+        int p = this.position();//不管pos之前的数据,  只比较 pos 到limit的数据
         for (int i = this.limit() - 1, j = that.limit() - 1; i >= p; i--, j--)
             if (!equals(this.get(i), that.get(j)))
                 return false;
@@ -1202,6 +1203,8 @@ public abstract class ByteBuffer
      * @return  A negative integer, zero, or a positive integer as this buffer
      *          is less than, equal to, or greater than the given buffer
      */
+    //从pos开始比较, 到剩余最少的那个buffer. 字典顺比较.
+    // 返回0, 正数,负数
     public int compareTo(ByteBuffer that) {
         int n = this.position() + Math.min(this.remaining(), that.remaining());
         for (int i = this.position(), j = that.position(); i < n; i++, j++) {

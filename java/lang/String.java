@@ -1465,7 +1465,7 @@ public final class String
     //
     public int hashCode() {
         int h = hash;
-        //1 hash作为一个成员, 每次调用hashCode(), 都检查h == 0,优化性能,避免重复计算
+        //1 hash作为一个成员, 每次调用hashCode(), 都检查h == 0,优化性能,避免重复计T算
         if (h == 0 && value.length > 0) {
             char val[] = value;
 

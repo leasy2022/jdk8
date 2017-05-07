@@ -173,12 +173,12 @@ public class LinkedList<E>
         final E element = f.item;
         final Node<E> next = f.next;
         f.item = null;
-        f.next = null; // help GC
-        first = next;
+        f.next = null; // help GC  //;//将传入的节点对象上的对象置空，也就是整个Node对象中的属性都为空了，后面会被GC回收
+        first = next; //新的头部
         if (next == null)
             last = null;
         else
-            next.prev = null;
+            next.prev = null; //把前驱置为null,
         size--;
         modCount++;
         return element;

@@ -136,6 +136,9 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author Doug Lea
  */
+/*
+http://www.cnblogs.com/skywang12345/p/3533995.html
+ */
 public class CyclicBarrier {
     /**
      * Each use of the barrier is represented as a generation instance.
@@ -161,7 +164,7 @@ public class CyclicBarrier {
     /* The command to run when tripped */
     private final Runnable barrierCommand;
     /** The current generation */
-    private Generation generation = new Generation();
+    private Generation generation = new Generation(); //用来标识 同一代
 
     /**
      * Number of parties still waiting. Counts down from parties to 0
@@ -201,11 +204,12 @@ public class CyclicBarrier {
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
+            //        // 保存“当前的generation”
             final Generation g = generation;
-
+            // 若“当前generation已损坏”，则抛出异常。
             if (g.broken)
                 throw new BrokenBarrierException();
-
+            // 如果当前线程被中断，则通过breakBarrier()终止CyclicBarrier，唤醒CyclicBarrier中所有等待线程。
             if (Thread.interrupted()) {
                 breakBarrier();
                 throw new InterruptedException();
@@ -219,6 +223,7 @@ public class CyclicBarrier {
                     if (command != null)
                         command.run();
                     ranAction = true;
+                    //               // 唤醒所有等待线程，并更新generation。因此是可重用的
                     nextGeneration();
                     return 0;
                 } finally {
@@ -276,7 +281,9 @@ public class CyclicBarrier {
      */
     public CyclicBarrier(int parties, Runnable barrierAction) {
         if (parties <= 0) throw new IllegalArgumentException();
+        // parties表示“必须同时到达barrier的线程个数”。
         this.parties = parties;
+        // count表示“处在等待状态的线程个数”。
         this.count = parties;
         this.barrierCommand = barrierAction;
     }

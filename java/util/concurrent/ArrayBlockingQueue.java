@@ -123,7 +123,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     final ReentrantLock lock;
 
     /** Condition for waiting takes */
-    private final Condition  ;
+    private final Condition notEmpty;
 
     /** Condition for waiting puts */
     private final Condition notFull;

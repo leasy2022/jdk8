@@ -1,28 +1,3 @@
-/*
- * Copyright (c) 2003, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
-
 package java.util;
 
 import java.util.function.Consumer;
@@ -338,7 +313,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         if (i >= queue.length)
             grow(i + 1);
         size = i + 1;
-        if (i == 0)
+        if (i == 0)//第一个值
             queue[0] = e;
         else
             siftUp(i, e);
@@ -582,18 +557,18 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         size = 0;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")   //取堆顶元素
     public E poll() {
         if (size == 0)
             return null;
         int s = --size;
         modCount++;
         E result = (E) queue[0];
-        E x = (E) queue[s];
+        E x = (E) queue[s]; //
         queue[s] = null;
-        if (s != 0)
+        if (s != 0)//如果剩余的不止一个元素
             siftDown(0, x);
-        return result;
+        return result;//堆顶元素
     }
 
     /**
@@ -616,11 +591,11 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         if (s == i) // removed last element
             queue[i] = null;
         else {
-            E moved = (E) queue[s];
+            E moved = (E) queue[s];//moved 是最后一个节点的值
             queue[s] = null;
-            siftDown(i, moved);
-            if (queue[i] == moved) {
-                siftUp(i, moved);
+            siftDown(i, moved);// 往下迭代替换
+            if (queue[i] == moved) { //如果没有任何调换, 即最后一个节点的值 比 两个子数都大
+                siftUp(i, moved);//向上迭代替换
                 if (queue[i] != moved)
                     return moved;
             }
@@ -640,7 +615,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * @param k the position to fill
      * @param x the item to insert
      */
-    private void siftUp(int k, E x) {
+    private void siftUp(int k, E x) {//插入第几个值
         if (comparator != null)
             siftUpUsingComparator(k, x);
         else
@@ -648,15 +623,15 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     @SuppressWarnings("unchecked")
-    private void siftUpComparable(int k, E x) {
+    private void siftUpComparable(int k, E x) { //默认是从小到大排序
         Comparable<? super E> key = (Comparable<? super E>) x;
         while (k > 0) {
-            int parent = (k - 1) >>> 1;
+            int parent = (k - 1) >>> 1; //先找到它的parent
             Object e = queue[parent];
-            if (key.compareTo((E) e) >= 0)
+            if (key.compareTo((E) e) >= 0) //进行比较,如果比它大,则退出
                 break;
-            queue[k] = e;
-            k = parent;
+            queue[k] = e;//如果比父节点的值小, 则将 位置替换
+            k = parent;//
         }
         queue[k] = key;
     }
@@ -692,11 +667,11 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     @SuppressWarnings("unchecked")
     private void siftDownComparable(int k, E x) {
         Comparable<? super E> key = (Comparable<? super E>)x;
-        int half = size >>> 1;        // loop while a non-leaf
+        int half = size >>> 1;        // loop while a non-leaf 只需要比较一半
         while (k < half) {
-            int child = (k << 1) + 1; // assume left child is least
+            int child = (k << 1) + 1; // assume left child is least 左子树的下标
             Object c = queue[child];
-            int right = child + 1;
+            int right = child + 1; //右子树的下标
             if (right < size &&
                 ((Comparable<? super E>) c).compareTo((E) queue[right]) > 0)
                 c = queue[child = right];

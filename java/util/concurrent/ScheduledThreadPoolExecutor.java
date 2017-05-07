@@ -1,39 +1,5 @@
-/*
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
-
-/*
- *
- *
- *
- *
- *
- * Written by Doug Lea with assistance from members of JCP JSR-166
- * Expert Group and released to the public domain, as explained at
- * http://creativecommons.org/publicdomain/zero/1.0/
- */
-
 package java.util.concurrent;
+
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
@@ -118,6 +84,7 @@ import java.util.*;
  * @since 1.5
  * @author Doug Lea
  */
+// 参考: http://www.liuinsect.com/2014/11/17/scheduledthreadpoolexecutor/
 public class ScheduledThreadPoolExecutor
         extends ThreadPoolExecutor
         implements ScheduledExecutorService {
@@ -192,7 +159,7 @@ public class ScheduledThreadPoolExecutor
          * indicates fixed-delay execution.  A value of 0 indicates a
          * non-repeating task.
          */
-        private final long period;
+        private final long period; //0 是一次性任务; 正数是 fixed-rate; 负数是fixed-delay
 
         /** The actual task to be re-enqueued by reExecutePeriodic */
         RunnableScheduledFuture<V> outerTask = this;
@@ -269,9 +236,9 @@ public class ScheduledThreadPoolExecutor
          */
         private void setNextRunTime() {
             long p = period;
-            if (p > 0)
+            if (p > 0)  //fixed-rate
                 time += p;
-            else
+            else //fixed-delay
                 time = triggerTime(-p);
         }
 
@@ -289,10 +256,10 @@ public class ScheduledThreadPoolExecutor
             boolean periodic = isPeriodic();
             if (!canRunInCurrentRunState(periodic))
                 cancel(false);
-            else if (!periodic)
+            else if (!periodic)//如果不是周期执行
                 ScheduledFutureTask.super.run();
-            else if (ScheduledFutureTask.super.runAndReset()) {
-                setNextRunTime();
+            else if (ScheduledFutureTask.super.runAndReset()) {//执行完一个任务,才放入一个新任务到队列
+                setNextRunTime(); //设置任务的时间
                 reExecutePeriodic(outerTask);
             }
         }
@@ -323,15 +290,15 @@ public class ScheduledThreadPoolExecutor
      */
     private void delayedExecute(RunnableScheduledFuture<?> task) {
         if (isShutdown())
-            reject(task);
+            reject(task); //如果线程池已经关闭,则拒绝任务
         else {
-            super.getQueue().add(task);
-            if (isShutdown() &&
+            super.getQueue().add(task);//把任务放入队列
+            if (isShutdown() && //再次检查
                 !canRunInCurrentRunState(task.isPeriodic()) &&
                 remove(task))
                 task.cancel(false);
             else
-                ensurePrestart();
+                ensurePrestart(); // 确保有线程去执行
         }
     }
 
@@ -343,7 +310,7 @@ public class ScheduledThreadPoolExecutor
      */
     void reExecutePeriodic(RunnableScheduledFuture<?> task) {
         if (canRunInCurrentRunState(true)) {
-            super.getQueue().add(task);
+            super.getQueue().add(task);//队列中放入一个任务
             if (!canRunInCurrentRunState(true) && remove(task))
                 task.cancel(false);
             else

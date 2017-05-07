@@ -304,8 +304,8 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * as sentinel for succ(), below.
      */
     final void updateHead(Node<E> h, Node<E> p) {
-        if (h != p && casHead(h, p))
-            h.lazySetNext(h);
+        if (h != p && casHead(h, p)) //将p作为新的链表头部
+            h.lazySetNext(h);//哨兵节点: 将自己的后继设为自己, 怎么进行这个资源的清理回收?
     }
 
     /**
@@ -325,11 +325,17 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * @return {@code true} (as specified by {@link Queue#offer})
      * @throws NullPointerException if the specified element is null
      */
+    /*
+    并不是每次添加一个元素后,都相应及时的修改尾节点,为什么呢?
+    1 因为这涉及到两个CAS都要成功, 就需要上锁了,使用设计技巧来规避锁
+    2 即使不及时更新tail也没关系, 最多就是从tail节点出向后遍历,找到正确的尾节点.
+      当然,及时更新,减少查找,有利于提高效率.
+     */
     public boolean offer(E e) {
         checkNotNull(e);
         final Node<E> newNode = new Node<E>(e);
 
-        for (Node<E> t = tail, p = t;;) {
+        for (Node<E> t = tail, p = t;;) {//cas操作,无限循环,直到成功
             Node<E> q = p.next;
             if (q == null) {  // 如果下一个节点是null,说明tail 是处于尾节点上
                 // p is last node
@@ -343,9 +349,10 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                         casTail(t, newNode);  // Failure is OK.
                     return true;
                 }
+                //CAS竞争失败,再次尝试
                 // Lost CAS race to another thread; re-read next
             }
-            else if (p == q)//疑问: 什么时候才会出现这种情况??TH
+            else if (p == q)// 如果是哨兵节点
                 // We have fallen off list.  If tail is unchanged, it
                 // will also be off-list, in which case we need to
                 // jump to head, from which all live nodes are always
@@ -353,26 +360,27 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                 p = (t != (t = tail)) ? t : head;
             else
                 // Check for tail updates after two hops.
-                p = (p != t && t != (t = tail)) ? t : q;
+                p = (p != t && t != (t = tail)) ? t : q;//取下一个节点或最后一个节点
+                // 如果因为其他线程修改了尾节点,则返回尾节点; 否则,返回下一个节点q
         }
     }
-
+     // 弹出首部元素
     public E poll() {
         restartFromHead:
         for (;;) {
             for (Node<E> h = head, p = h, q;;) {
                 E item = p.item;
 
-                if (item != null && p.casItem(item, null)) {
+                if (item != null && p.casItem(item, null)) { //弹出第一个元素,使用"先斩后奏",先保证队列中第一个元素值为空
                     // Successful CAS is the linearization point
                     // for item to be removed from this queue.
-                    if (p != h) // hop two nodes at a time
+                    if (p != h) // hop two nodes at a time  此时不相等,更新头节点
                         updateHead(h, ((q = p.next) != null) ? q : p);
                     return item;
                 }
-                else if ((q = p.next) == null) {
+                else if ((q = p.next) == null) {//此地给q赋值了,即使条件不符合
                     updateHead(h, p);
-                    return null;
+                    return null; //如果进入这里,说明队列是空的,返回null
                 }
                 else if (p == q)
                     continue restartFromHead;

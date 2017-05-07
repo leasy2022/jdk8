@@ -2416,7 +2416,7 @@ public final class Class<T> implements java.io.Serializable,
             while (c.isArray()) {
                 c = c.getComponentType();
             }
-            String baseName = c.getName();//获得当前类的路径
+            String baseName = c.getName();//获得 当前类 的路径(根据名字能获取路径)
             int index = baseName.lastIndexOf('.');
             if (index != -1) {
                 name = baseName.substring(0, index).replace('.', '/')

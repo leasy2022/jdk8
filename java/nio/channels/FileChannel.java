@@ -345,6 +345,9 @@ public abstract class FileChannel
      * read.  Otherwise this method behaves exactly as specified in the {@link
      * ReadableByteChannel} interface. </p>
      */
+    /*
+    如果到达末尾,没有数据,返回-1
+     */
     public abstract int read(ByteBuffer dst) throws IOException;
 
     /**
@@ -430,6 +433,9 @@ public abstract class FileChannel
      * @throws  IOException
      *          If some other I/O error occurs
      */
+    /*
+
+     */
     public abstract long position() throws IOException;
 
     /**
@@ -471,6 +477,9 @@ public abstract class FileChannel
      *
      * @throws  IOException
      *          If some other I/O error occurs
+     */
+    /*
+    获得文件的大小
      */
     public abstract long size() throws IOException;
 

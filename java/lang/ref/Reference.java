@@ -36,10 +36,24 @@ import sun.misc.Cleaner;
  * @author   Mark Reinhold
  * @since    1.2
  */
-
+/*
+http://mojijs.com/2016/07/217393/index.html
+Reference是引用对象的抽象基类,定义了对引用对象操作的常用方法.
+因为引用对象是通过和GC紧密合作来实现的, 因此 不能直接为这个类创建子类.
+ */
 public abstract class Reference<T> {
 
     /* A Reference instance is in one of four possible internal states:
+     *     引用对象的四种状态:
+     *     1 Active
+     *       新创建的对象是Active的.
+     *       当一个对象不可达的时候,GC就要修改这个对象的状态,Pending或Inactive.
+     *       是修改为Pending还是Inactive,取决于这个对象创建的时候有没有在队列中注册.
+     *       如果注册了,则修改为Pending,并放入pending-Reference list.
+     *
+     *     2 Pending
+     *       前提: 元素被注册.  等待被放入队列
+     *     3 Enqueued
      *
      *     Active: Subject to special treatment by the garbage collector.  Some
      *     time after the collector detects that the reachability of the

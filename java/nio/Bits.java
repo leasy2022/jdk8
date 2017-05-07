@@ -632,29 +632,29 @@ class Bits {                            // package-private
     static void reserveMemory(long size, int cap) {
         synchronized (Bits.class) {
             if (!memoryLimitSet && VM.isBooted()) {
-                maxMemory = VM.maxDirectMemory();
+                maxMemory = VM.maxDirectMemory(); //
                 memoryLimitSet = true;
             }
             // -XX:MaxDirectMemorySize limits the total capacity rather than the
             // actual memory usage, which will differ when buffers are page
             // aligned.
-            if (cap <= maxMemory - totalCapacity) {
+            if (cap <= maxMemory - totalCapacity) { // 如果剩余的内存比要申请的内存要大
                 reservedMemory += size;
-                totalCapacity += cap;
+                totalCapacity += cap; //totalCapacity 是累计申请的总内存大小
                 count++;
                 return;
             }
         }
 
-        System.gc();
+        System.gc();//异步的: 如果内存不足,则 gc; 但如果设置了 -DisableExplicitGC,不起作用
         try {
-            Thread.sleep(100);
+            Thread.sleep(100); //进程停顿100ms; 如果100ms内 GC没有完成,后续 会抛出OOM异常
         } catch (InterruptedException x) {
             // Restore interrupt status
             Thread.currentThread().interrupt();
         }
         synchronized (Bits.class) {
-            if (totalCapacity + cap > maxMemory)
+            if (totalCapacity + cap > maxMemory)// GC后,内存仍然不足,则OOM抛出异常
                 throw new OutOfMemoryError("Direct buffer memory");
             reservedMemory += size;
             totalCapacity += cap;
@@ -663,7 +663,7 @@ class Bits {                            // package-private
 
     }
 
-    static synchronized void unreserveMemory(long size, int cap) {
+    static synchronized void unreserveMemory(long size, int cap) {//Deallocator 在清理内存的时候调用
         if (reservedMemory > 0) {
             reservedMemory -= size;
             totalCapacity -= cap;

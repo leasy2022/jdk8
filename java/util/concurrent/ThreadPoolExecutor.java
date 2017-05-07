@@ -344,6 +344,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 	 * that workerCount is 0 (which sometimes entails a recheck -- see
 	 * below).
 	 */
+	// ctl维护了线程池的状态(高3位) 和 活动的线程个数.(第29位)
 	private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0));
 	private static final int COUNT_BITS = Integer.SIZE - 3;//32-3=29
 	private static final int CAPACITY = (1 << COUNT_BITS) - 1;//(2^29)-1 即 最大值为 后29位都是1;  即 高3位标识线程池状态信息, 低29位标识线程数量
@@ -526,7 +527,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 	 * present or if allowCoreThreadTimeOut. Otherwise they wait
 	 * forever for new work.
 	 */
-	private volatile long keepAliveTime;
+	private volatile long keepAliveTime;//空闲的线程多久后被为销毁, 0 表示立即终止
 
 	/**
 	 * If false (default), core threads stay alive even when idle.
@@ -942,7 +943,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 					    !(rs == SHUTDOWN &&
 							      firstTask == null &&
 							      !workQueue.isEmpty()))
-				return false;
+				return false;//返回false,会拒绝任务
 
 			// 走到这的情形：
 			// 1.线程池状态为RUNNING
@@ -1204,13 +1205,13 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 						     (Thread.interrupted() &&
 								      runStateAtLeast(ctl.get(), STOP))) &&
 						    !wt.isInterrupted())
-					wt.interrupt();
+
 				try {
 					// 任务执行前可以插入一些处理，子类重载该方法
 					beforeExecute(wt, task); // 任务执行前的动作
 					Throwable thrown = null;
 					try {
-						task.run();//任务执行
+						task.run();//任务执行;  如果是Callable, 则会封装成FutureTask, 会把异常给吞噬,不抛出, 只有通过get得到异常
 					} catch (RuntimeException x) {
 						thrown = x;
 						throw x;
@@ -1221,7 +1222,9 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 						thrown = x;
 						throw new Error(x);
 					} finally {
-						afterExecute(task, thrown);//任务执行后的动作
+						//task是RunnableFuture(FutureTask), 既是执行单元,又是结果
+						afterExecute(task, thrown);//任务执行后的动作, 把异常放在了这里; 参考: https://segmentfault.com/a/1190000000669942
+
 					}
 				} finally {
 					task = null;

@@ -513,6 +513,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
      * @return the number of holds on this lock by the current thread,
      *         or zero if this lock is not held by the current thread
      */
+    //
     public int getHoldCount() {
         return sync.getHoldCount();
     }

@@ -191,7 +191,7 @@ public class URLClassLoader extends SecureClassLoader implements Closeable {
     public URLClassLoader(URL[] urls, ClassLoader parent,
                           URLStreamHandlerFactory factory) {
         super(parent);
-        // this is to make the stack depth consistent with 1.1
+        // this is to make the stack deth consistent with 1.1
         SecurityManager security = System.getSecurityManager();
         if (security != null) {
             security.checkCreateClassLoader();

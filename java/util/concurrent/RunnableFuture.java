@@ -53,5 +53,5 @@ public interface RunnableFuture<V> extends Runnable, Future<V> {
      * Sets this Future to the result of its computation
      * unless it has been cancelled.
      */
-    void run();
+    void run();//Future模式,  run方法构造真实的数据
 }

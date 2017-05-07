@@ -74,7 +74,7 @@ public abstract class MappedByteBuffer
 
     // For mapped buffers, a FileDescriptor that may be used for mapping
     // operations if valid; null if the buffer is not mapped.
-    private final FileDescriptor fd;
+    private final FileDescriptor fd;//文件和内存映射
 
     // This should only be invoked by the DirectByteBuffer constructors
     //

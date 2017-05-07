@@ -176,6 +176,8 @@ public class CountDownLatch {
             return (getState() == 0) ? 1 : -1;
         }
 
+
+        //重写了 tryReleaseShared, 什么时候返回false, 什么时候返回true
         protected boolean tryReleaseShared(int releases) {
             // Decrement count; signal when transition to zero
             for (;;) {
@@ -184,7 +186,7 @@ public class CountDownLatch {
                     return false;
                 int nextc = c-1;
                 if (compareAndSetState(c, nextc))
-                    return nextc == 0;
+                    return nextc == 0;// 当 状态位为0时,返回true
             }
         }
     }

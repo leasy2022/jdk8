@@ -190,7 +190,7 @@ public class OutputStreamWriter extends Writer {
      *
      * @exception  IOException  If an I/O error occurs
      */
-    public void write(int c) throws IOException {
+    public void  write(int c) throws IOException {
         se.write(c);
     }
 

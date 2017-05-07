@@ -150,7 +150,7 @@ class ByteArrayInputStream extends InputStream {
      *          stream has been reached.
      */
     public synchronized int read() { //读取字节数组中的 一个字节内容
-        return (pos < count) ? (buf[pos++] & 0xff) : -1;
+        return (pos < count) ? (buf[pos++] & 0xff) : -1; //为什么要  & 0xff ?  因为有 &0xff, 因此不可能为负数, 除非没有内容了
     }
 
     /**

@@ -430,13 +430,13 @@ public class ReentrantReadWriteLock
             Thread current = Thread.currentThread();
             int c = getState();
             int w = exclusiveCount(c);
-            if (c != 0) {
+            if (c != 0) {//肯定有锁存在
                 // (Note: if c != 0 and w == 0 then shared count != 0)
                 if (w == 0 || current != getExclusiveOwnerThread())
-                    return false;
+                    return false;// 有读锁存在 或者 有写锁存在但是另外一个线程来请求写锁
                 if (w + exclusiveCount(acquires) > MAX_COUNT)
                     throw new Error("Maximum lock count exceeded");
-                // Reentrant acquire
+                // Reentrant acquire  //重入锁的情况
                 setState(c + acquires);
                 return true;
             }

@@ -220,6 +220,7 @@ public class DriverManager {
      * property once.
      *
      * @param url a database url of the form
+     * jdbc:mysql://localhost:3306/UserDB
      * <code>jdbc:<em>subprotocol</em>:<em>subname</em></code>
      * @param user the database user on whose behalf the connection is being
      *   made
@@ -349,6 +350,7 @@ public class DriverManager {
      * @exception NullPointerException if {@code driver} is null
      * @since 1.8
      */
+    // 注册Driver
     public static synchronized void registerDriver(java.sql.Driver driver,
             DriverAction da)
         throws SQLException {
@@ -661,6 +663,7 @@ public class DriverManager {
             if(isDriverAllowed(aDriver.driver, callerCL)) {
                 try {
                     println("    trying " + aDriver.driver.getClass().getName());
+                    // 最终调用注册进来的driver 去进行连接
                     Connection con = aDriver.driver.connect(url, info);
                     if (con != null) {
                         // Success!

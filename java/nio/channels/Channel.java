@@ -31,7 +31,7 @@ import java.io.Closeable;
 
 /**
  * A nexus for I/O operations.
- *
+ *  channel 代表了一个和实体的连接: 文件,网络
  * <p> A channel represents an open connection to an entity such as a hardware
  * device, a file, a network socket, or a program component that is capable of
  * performing one or more distinct I/O operations, for example reading or

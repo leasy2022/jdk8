@@ -183,10 +183,10 @@ public abstract class Buffer {
         Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.ORDERED;
 
     // Invariants: mark <= position <= limit <= capacity
-    private int mark = -1;
-    private int position = 0;
-    private int limit;
-    private int capacity;
+    private int mark = -1;//标记. mark()和reset()配套
+    private int position = 0; //下一个要被读或写的元素的索引
+    private int limit;//第一个不能读或写的元素
+    private int capacity;//构造时创建, 不能改变
 
     // Used only by direct buffers
     // NOTE: hoisted here for speed in JNI GetDirectBufferAddress
@@ -195,6 +195,9 @@ public abstract class Buffer {
     // Creates a new buffer with the given mark, position, limit, and capacity,
     // after checking invariants.
     //
+    /*
+    在最初构造的时候,初始值: mark=-1, pos=0, limit=cap ,里面没有数据,为写入数据做准备
+     */
     Buffer(int mark, int pos, int lim, int cap) {       // package-private
         if (cap < 0)
             throw new IllegalArgumentException("Negative capacity: " + cap);
@@ -291,6 +294,7 @@ public abstract class Buffer {
      *
      * @return  This buffer
      */
+    //记录当前的position
     public final Buffer mark() {
         mark = position;
         return this;
@@ -360,6 +364,10 @@ public abstract class Buffer {
      *
      * @return  This buffer
      */
+    // 由 写 转 读: 更改三个标志成员
+
+    //同 rewind的区别: 多了limit = position
+    //buffer.limit(buffer.position()).position(0);
     public final Buffer flip() {
         limit = position;
         position = 0;
@@ -382,6 +390,7 @@ public abstract class Buffer {
      *
      * @return  This buffer
      */
+
     public final Buffer rewind() {
         position = 0;
         mark = -1;

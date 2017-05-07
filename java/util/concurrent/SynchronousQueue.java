@@ -334,6 +334,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
              */
 
             SNode s = null; // constructed/reused as needed
+            // 如果有数据e不为null, 则是放;否则是取
             int mode = (e == null) ? REQUEST : DATA;
 
             for (;;) {

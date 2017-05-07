@@ -1145,6 +1145,7 @@ public abstract class AbstractQueuedSynchronizer
      *         correctly.
      * @throws UnsupportedOperationException if shared mode is not supported
      */
+    //子类重写这个方法:如  CountDownLatch
     protected int tryAcquireShared(int arg) {
         throw new UnsupportedOperationException();
     }
@@ -1302,7 +1303,7 @@ public abstract class AbstractQueuedSynchronizer
      */
     public final void acquireShared(int arg) {
         if (tryAcquireShared(arg) < 0)
-            doAcquireShared(arg); //如果写锁被占用,则获取失败,则构建一个SHARED节点放入链表;挂起线程,等待被唤醒
+                doAcquireShared(arg); //如果写锁被占用,则获取失败,则构建一个SHARED节点放入链表;挂起线程,等待被唤醒
     }
 
     /**
@@ -1361,7 +1362,7 @@ public abstract class AbstractQueuedSynchronizer
      */
     public final boolean releaseShared(int arg) {
         if (tryReleaseShared(arg)) {
-            doReleaseShared();
+            doReleaseShared(); //唤醒所有的等待这个共享锁的线程
             return true;
         }
         return false;
@@ -1556,6 +1557,7 @@ public abstract class AbstractQueuedSynchronizer
      *
      * @return the estimated number of threads waiting to acquire
      */
+    // 几个线程正在等待获取锁.即 执行在lock()方法处. 这个是估计值,不是准确值.
     public final int getQueueLength() {
         int n = 0;
         for (Node p = tail; p != null; p = p.prev) {
@@ -1807,6 +1809,7 @@ public abstract class AbstractQueuedSynchronizer
      *         not associated with this synchronizer
      * @throws NullPointerException if the condition is null
      */
+    // 有几个线程调用了condition.await()方法,返回的值是估计值.
     public final int getWaitQueueLength(ConditionObject condition) {
         if (!owns(condition))
             throw new IllegalArgumentException("Not owner");
@@ -1997,10 +2000,10 @@ public abstract class AbstractQueuedSynchronizer
             boolean interrupted = false;
             while (!isOnSyncQueue(node)) {
                 LockSupport.park(this);
-                if (Thread.interrupted())
+                if (Thread.interrupted())//不响应中断.
                     interrupted = true;
             }
-            if (acquireQueued(node, savedState) || interrupted)
+            if (acquireQueued(node, savedState) || interrupted) //在唤醒后,如果线程被中断.则恢复中断状态
                 selfInterrupt();
         }
 

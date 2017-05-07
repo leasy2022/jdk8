@@ -85,6 +85,9 @@ import java.util.function.Consumer;
  * @author Doug Lea
  * @param <E> the type of elements held in this collection
  */
+//http://blog.csdn.net/yjian2008/article/details/16951811
+    //http://www.tuicool.com/articles/ZFriEz
+    //http://blog.csdn.net/xiaoxufox/article/details/52241317
 public class LinkedTransferQueue<E> extends AbstractQueue<E>
     implements TransferQueue<E>, java.io.Serializable {
     private static final long serialVersionUID = -3223113410248163686L;

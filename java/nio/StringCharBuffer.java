@@ -27,7 +27,7 @@ package java.nio;
 
 
 // ## If the sequence is a string, use reflection to share its array
-
+// 只读的
 class StringCharBuffer                                  // package-private
     extends CharBuffer
 {

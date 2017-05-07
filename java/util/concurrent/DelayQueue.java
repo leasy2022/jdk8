@@ -138,7 +138,7 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
         lock.lock();
         try {
             q.offer(e);
-            if (q.peek() == e) {
+            if (q.peek() == e) { //如果插入后只有一个元素;说明之前队列是空的
                 leader = null;
                 available.signal();
             }
@@ -207,30 +207,31 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
         try {
             for (;;) {
                 E first = q.peek();
-                if (first == null)
-                    available.await();
+                if (first == null)//如果为空
+                    available.await();//使用condition, 线程等待
                 else {
-                    long delay = first.getDelay(NANOSECONDS);
+                    //
+                    long delay = first.getDelay(NANOSECONDS);//查看第一个元素的延迟时间
                     if (delay <= 0)
                         return q.poll();
                     first = null; // don't retain ref while waiting
                     if (leader != null)
-                        available.await();
+                        available.await(); // 第一个线程之后的线程,无线等待; 等待被signal
                     else {
                         Thread thisThread = Thread.currentThread();
                         leader = thisThread;
                         try {
-                            available.awaitNanos(delay);
+                            available.awaitNanos(delay);//第一个线程保持有限时间的等待
                         } finally {
                             if (leader == thisThread)
-                                leader = null;
+                                leader = null; //当leader线程获得了元素, 则将其赋值为null
                         }
                     }
                 }
             }
         } finally {
             if (leader == null && q.peek() != null)
-                available.signal();
+                available.signal(); //唤醒其他的等待线程
             lock.unlock();
         }
     }

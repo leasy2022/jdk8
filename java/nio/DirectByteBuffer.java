@@ -83,13 +83,13 @@ class DirectByteBuffer
 		}
 
 		public void run() {
-			if (address == 0) {
+			if (address == 0) {//先减产address
 				// Paranoia
 				return;
 			}
-			unsafe.freeMemory(address);
-			address = 0;
-			Bits.unreserveMemory(size, capacity);
+			unsafe.freeMemory(address); //清理动作:是直接释放这块内存
+			address = 0;// 释放内存后,会 更改address 为0, 避免再次调用时,再释放.
+			Bits.unreserveMemory(size, capacity); //修改可分配的大小
 		}
 
 	}
@@ -102,18 +102,18 @@ class DirectByteBuffer
 
 
 	// Primary constructor
-	//
+	// 参考:http://calvin1978.blogcn.com/articles/directbytebuffer.html
 	DirectByteBuffer(int cap) {                   // package-private
 
 		super(-1, 0, cap, cap);
 		boolean pa = VM.isDirectMemoryPageAligned();
-		int ps = Bits.pageSize();
-		long size = Math.max(1L, (long) cap + (pa ? ps : 0));
-		Bits.reserveMemory(size, cap);
+		int ps = Bits.pageSize();// 内存一页大小 4k
+		long size = Math.max(1L, (long) cap + (pa ? ps : 0));//cap是程序要申请的内存大小, 而size又是什么?
+		Bits.reserveMemory(size, cap); //判断剩余内存是否 满足分配
 
 		long base = 0;
 		try {
-			base = unsafe.allocateMemory(size);
+			base = unsafe.allocateMemory(size); //分配内存,并返回内存的基地址
 		} catch (OutOfMemoryError x) {
 			Bits.unreserveMemory(size, cap);
 			throw x;
@@ -125,7 +125,7 @@ class DirectByteBuffer
 		} else {
 			address = base;
 		}
-		cleaner = Cleaner.create(this, new Deallocator(base, size, cap));
+		cleaner = Cleaner.create(this, new Deallocator(base, size, cap));//创建一个Clear, 并把代表清理动作的Deallocator类绑定
 		att = null;
 
 

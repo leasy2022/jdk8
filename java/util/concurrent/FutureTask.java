@@ -290,7 +290,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
                     ran = false;
                     setException(ex);
                 }
-                if (ran) //正常执行成功, 讲结果赋值给outcome
+                if (ran) //正常执行成功, 讲结果赋值给outcome; 并唤醒阻塞的线程
                     set(result);
             }
         } finally {
@@ -314,6 +314,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
      *
      * @return {@code true} if successfully run and reset
      */
+    // ScheduledThreadPoolExecutor中 调用
     protected boolean runAndReset() {
         if (state != NEW ||
             !UNSAFE.compareAndSwapObject(this, runnerOffset,

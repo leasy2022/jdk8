@@ -57,7 +57,9 @@ import sun.nio.cs.StreamEncoder;
  * @author JSR-51 Expert Group
  * @since 1.4
  */
-
+/*
+工厂类: 中 有工厂方法
+ */
 public final class Channels {
 
     private Channels() { }              // No instantiation
