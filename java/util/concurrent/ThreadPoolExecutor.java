@@ -11,6 +11,8 @@ import java.util.*;
  * one of possibly several pooled threads, normally configured
  * using {@link Executors} factory methods.
  * <p>
+ *      线程池解决了两个问题:  1 对线程的管理: 复用,提高了性能
+ *        2 对任务的管理
  * <p>Thread pools address two different problems: they usually
  * provide improved performance when executing large numbers of
  * asynchronous tasks, due to reduced per-task invocation overhead,
@@ -41,6 +43,14 @@ import java.util.*;
  * corePoolSize (see {@link #getCorePoolSize}) and
  * maximumPoolSize (see {@link #getMaximumPoolSize}).
  * <p>
+ *      当一个任务被提交执行时:
+ *      1 如果 当前线程数<corePoolSize, 会被创建一个线程去执行task,即使 有空闲的线程
+ *      2 如果 corePoolSize<当前线程数, 则task会被放入队列中,直到 队列满了,才会创建新的线程.
+ *
+ *      3 可以动态调整 线程池的大小 setCorePoolSize setMaximumPoolSize
+ *      4 可以调用 prestartCoreThread 和 prestartAllCoreThreads来 提前生成线程
+ *
+ *      5  线程销毁: 大于core的线程超过keepalive时间,会被销毁
  * When a new task is submitted in method {@link #execute(Runnable)},
  * and fewer than corePoolSize threads are running, a new thread is
  * created to handle the request, even if other worker threads are
@@ -926,7 +936,9 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 	 * @return true if successful
 	 */
     /*
-    核心代码: 具体的执行任务
+    核心代码: 创建一个新的线程去执行任务
+    有3种情况:
+
      1 检查状态是否正常\ 正在执行的任务数量
      2 生成Woker(继承自AQS) , 放入Hashset
      3 启动任务,线程数+1
@@ -1444,7 +1456,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         2 如果任务数 大于等于 corePoolSize, 则把任务放入队列中
 		 */
 
-		// 活动线程数 < corePoolSize
+		// 1 活动线程数 < corePoolSize
 		if (workerCountOf(c) < corePoolSize) {//当前线程池中的线程数量小于corePoolSize
 			if (addWorker(command, true)) //当core为true时, 如果启动失败; 有其他同步线程启动了
 				return;
@@ -2136,6 +2148,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 	 * A handler for rejected tasks that throws a
 	 * {@code RejectedExecutionException}.
 	 */
+	//默认 的 Policy, 抛出异常
 	public static class AbortPolicy implements RejectedExecutionHandler {
 		/**
 		 * Creates an {@code AbortPolicy}.

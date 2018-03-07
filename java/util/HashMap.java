@@ -279,7 +279,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         final int hash;
         final K key;
         V value;
-        Node<K,V> next;
+        Node<K,V> next;//单向链表
 
         Node(int hash, K key, V value, Node<K,V> next) {
             this.hash = hash;
@@ -333,7 +333,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * to incorporate impact of the highest bits that would otherwise
      * never be used in index calculations because of table bounds.
      */
-    static final int hash(Object key) {
+    static final int hash(Object key) { //返回值 >=0
         int h;
         //k求的hashCode后, 高16位和低16位做异或运算(同则0,异则1,11->0,00->0, 10->1)
         //为什么呢?减少碰撞.
@@ -507,6 +507,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * @param evict false when initially constructing this map, else
      * true (relayed to method afterNodeInsertion).
      */
+    //为了提升效率,先计算出 threshold
     final void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
         int s = m.size();
         if (s > 0) {
@@ -687,7 +688,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         }
         ++modCount;//对修改次数加1
         if (++size > threshold)
-            resize();
+            resize();//是否需要扩容
         afterNodeInsertion(evict);
         return null;
     }
@@ -709,7 +710,6 @@ public class HashMap<K,V> extends AbstractMap<K,V>
 
     怎么把map中的元素拷贝到新的hashmap?
 
-    问题: 容量大小是底层数组大小;  当是底层数组达到threshhold还是连同链表中总共的?, 再次扩容时, 是底层数组么?
      */
     final Node<K,V>[] resize() {
         Node<K,V>[] oldTab = table;
@@ -721,6 +721,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 threshold = Integer.MAX_VALUE;
                 return oldTab;
             }
+                   // 没超过最大值，就扩充为原来的2倍
             else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
                      oldCap >= DEFAULT_INITIAL_CAPACITY)
                 newThr = oldThr << 1; // double threshold  2倍
@@ -755,14 +756,15 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                         Node<K,V> next;
                         do {
                             next = e.next;
-                            if ((e.hash & oldCap) == 0) {
-                                if (loTail == null)
+
+                            if ((e.hash & oldCap) == 0) { //如果为0,说明高一位还是0,还是会落到这个位置
+                                if (loTail == null)//第一个元素
                                     loHead = e;
                                 else
                                     loTail.next = e;
                                 loTail = e;
                             }
-                            else {
+                            else {//如果不是0,说明高一位是1,会落到扩容后的位置
                                 if (hiTail == null)
                                     hiHead = e;
                                 else

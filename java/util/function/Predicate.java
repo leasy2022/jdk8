@@ -41,6 +41,7 @@ public interface Predicate<T> {
 
     /**
      * Evaluates this predicate on the given argument.
+     * 对输入参数进行判别,返回boolean
      *
      * @param t the input argument
      * @return {@code true} if the input argument matches the predicate,
@@ -63,6 +64,9 @@ public interface Predicate<T> {
      * @return a composed predicate that represents the short-circuiting logical
      * AND of this predicate and the {@code other} predicate
      * @throws NullPointerException if other is null
+     */
+    /*
+    多个Predicate进行逻辑拼接
      */
     default Predicate<T> and(Predicate<? super T> other) {
         Objects.requireNonNull(other);

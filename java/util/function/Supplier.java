@@ -34,15 +34,16 @@ package java.util.function;
  * whose functional method is {@link #get()}.
  *
  * @param <T> the type of results supplied by this supplier
- *
+
  * @since 1.8
  */
 @FunctionalInterface
-public interface Supplier<T> {
+public interface Supplier<T> {//提供结果: 当调用时,一个新的或不同的结果被返回(即再进行一次计算)
 
     /**
      * Gets a result.
-     *
+     * *A supplier of objects. The result objects are either created
+     * during the invocation of get() or by some prior action.
      * @return a result
      */
     T get();

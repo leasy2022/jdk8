@@ -275,15 +275,20 @@ public interface Lock {
 	boolean tryLock();
 
 	/**
+	 * 1  在一定时间范围内获取空闲的锁,并且线程没有中断
 	 * Acquires the lock if it is free within the given waiting time and the
 	 * current thread has not been {@linkplain Thread#interrupt interrupted}.
-	 * <p>
+	 * <p> 2 如果锁可用,会立刻返回true
 	 * <p>If the lock is available this method returns immediately
 	 * with the value {@code true}.
+	 *   3 如果锁不可用, 则休眠等待下面的条件发生
 	 * If the lock is not available then
 	 * the current thread becomes disabled for thread scheduling
 	 * purposes and lies dormant until one of three things happens:
-	 * <ul>
+	 * <ul> 3-1: 当前线程获取了锁
+	 *      3-2: 等待期间,其他线程中断了当前线程
+	 *          这种情况 会抛出 InterruptedException 异常, 然后线程的中断状态被清除
+	 *      3-3: 超过了等待时间
 	 * <li>The lock is acquired by the current thread; or
 	 * <li>Some other thread {@linkplain Thread#interrupt interrupts} the
 	 * current thread, and interruption of lock acquisition is supported; or
@@ -348,11 +353,13 @@ public interface Lock {
 	void unlock();
 
 	/**
+	 * 1 返回一个同 这个lock 关联的 Condition对象
 	 * Returns a new {@link Condition} instance that is bound to this
 	 * {@code Lock} instance.
-	 * <p>
+	 * <p> 2 在调用condition.await的时候, 这个线程必须拥有锁
 	 * <p>Before waiting on the condition the lock must be held by the
 	 * current thread.
+	 *  3 condition.await方法会自动释放锁,并且 当await方法返回时,需要重新获取锁
 	 * A call to {@link Condition#await()} will atomically release the lock
 	 * before waiting and re-acquire the lock before the wait returns.
 	 * <p>

@@ -76,6 +76,9 @@ import java.util.concurrent.locks.LockSupport;
  2 执行流程
    首先是一个Runnable, 需要封装成Thread 或 在线程池中调用; start后,会启动一个线程执行到run(),并把结果放入outcome.
    其实是一个Future,
+
+  原来自己一直想不通:执行线程怎么把结果告知获取结果的线程
+  FutureTask对象作为执行线程和等待线程的共享资源;
      */
 public class FutureTask<V> implements RunnableFuture<V> {
     /*
@@ -119,12 +122,13 @@ public class FutureTask<V> implements RunnableFuture<V> {
     private Callable<V> callable;
     /** The result to return or exception to throw from get() */
     /*
-    存储执行的结果; 如发生异常时,赋值为Throwable
+    存储执行的结果:( 如发生异常时,赋值为Throwable)
      */
     private Object outcome; // non-volatile, protected by state reads/writes
     /** The thread running the callable; CASed during run() */
     private volatile Thread runner; //同true/false一样, 判断有没有线程再执行
     /** Treiber stack of waiting threads */
+    //等待结果的线程,是个链表
     private volatile WaitNode waiters;
 
     /**
@@ -181,6 +185,9 @@ public class FutureTask<V> implements RunnableFuture<V> {
         return state != NEW;
     }
 
+    /*
+    如果传入参数为true,则需要对执行线程进行中断
+     */
     public boolean cancel(boolean mayInterruptIfRunning) {
         if (!(state == NEW &&
               UNSAFE.compareAndSwapInt(this, stateOffset, NEW,
@@ -204,6 +211,10 @@ public class FutureTask<V> implements RunnableFuture<V> {
 
     /**
      * @throws CancellationException {@inheritDoc}
+     */
+    /*
+    当前调用线程通过get获取执行结果
+    如果已经完成,则直接返回结果;如果没有完成,则将线程封装成WaitNode(多个线程阻塞,会成为一个链表)
      */
     public V get() throws InterruptedException, ExecutionException {
         int s = state;
@@ -247,8 +258,10 @@ public class FutureTask<V> implements RunnableFuture<V> {
      * @param v the value
      */
     protected void set(V v) {
+        //如果状态仍然是new,则继续(状态可能已经被赋值或被取消了)
         if (UNSAFE.compareAndSwapInt(this, stateOffset, NEW, COMPLETING)) {
             outcome = v;
+            //输出赋值结束,设置状态为NORMAL
             UNSAFE.putOrderedInt(this, stateOffset, NORMAL); // final state
             finishCompletion();
         }
@@ -272,6 +285,9 @@ public class FutureTask<V> implements RunnableFuture<V> {
         }
     }
 
+    /*
+    另外一个线程(新生成的执行线程)会调用callable.call()方法
+     */
     public void run() {
         if (state != NEW ||
             !UNSAFE.compareAndSwapObject(this, runnerOffset, //检查runner是不是null, 如果不是null,说明已经有执行
@@ -382,6 +398,9 @@ public class FutureTask<V> implements RunnableFuture<V> {
      * Removes and signals all waiting threads, invokes done(), and
      * nulls out callable.
      */
+    /*
+    唤醒等待结果的线程:
+     */
     private void finishCompletion() {
         // assert state > COMPLETING;
         for (WaitNode q; (q = waiters) != null;) {
@@ -390,7 +409,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
                     Thread t = q.thread;
                     if (t != null) {
                         q.thread = null;
-                        LockSupport.unpark(t);
+                        LockSupport.unpark(t);//停止线程挂起
                     }
                     WaitNode next = q.next;
                     if (next == null)
@@ -414,14 +433,19 @@ public class FutureTask<V> implements RunnableFuture<V> {
      * @param nanos time to wait, if timed
      * @return state upon completion
      */
+
     //实现阻塞的关键函数:
+    /*
+    等待直至唤醒线程,后再检查 完成状态
+     */
     private int awaitDone(boolean timed, long nanos)
         throws InterruptedException {
+        //等待的截止时间;如果无限等待,则为0
         final long deadline = timed ? System.nanoTime() + nanos : 0L;
         WaitNode q = null;
         boolean queued = false;
         for (;;) {
-            if (Thread.interrupted()) {//如果线程被中断,则抛出异常
+            if (Thread.interrupted()) {//如果当前等待线程被中断,则抛出异常
                 removeWaiter(q);
                 throw new InterruptedException();
             }
@@ -445,10 +469,10 @@ public class FutureTask<V> implements RunnableFuture<V> {
                     removeWaiter(q);
                     return state;
                 }
-                LockSupport.parkNanos(this, nanos);
+                LockSupport.parkNanos(this, nanos);//有限时间挂起
             }
             else
-                LockSupport.park(this);//挂起线程;什么时候被唤醒呢??
+                LockSupport.park(this);//挂起线程直至被唤醒
         }
     }
 

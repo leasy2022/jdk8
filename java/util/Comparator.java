@@ -107,6 +107,9 @@ import java.util.Comparators;
  */
 /*
 一个类型,怎么判别谁大谁小
+
+参考:https://wizardforcel.gitbooks.io/java8-tutorials/content/Java%208%20Lambda%20%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%A2%9E%E5%BC%BA%E7%89%88%20Comparator%20%E5%92%8C%E6%8E%92%E5%BA%8F.html
+
  */
 @FunctionalInterface
 public interface Comparator<T> {
@@ -149,6 +152,12 @@ public interface Comparator<T> {
      *         comparator does not permit null arguments
      * @throws ClassCastException if the arguments' types prevent them from
      *         being compared by this comparator.
+     */
+    /*
+    对传进来的两个对象进行比较:
+    1 > 返回正值
+    2 == 0
+    3 < 负值
      */
     int compare(T o1, T o2);
 

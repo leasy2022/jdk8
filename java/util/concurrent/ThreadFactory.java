@@ -55,6 +55,9 @@ package java.util.concurrent;
  * @since 1.5
  * @author Doug Lea
  */
+/*
+按照需求实现创建线程的工厂类
+ */
 public interface ThreadFactory {
 
     /**

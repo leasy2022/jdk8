@@ -51,6 +51,11 @@ import sun.misc.Unsafe;
  * @since 1.5
  * @author Doug Lea
 */
+/*
+实现的关键:
+1 使用volatile 修饰封装的类型
+2 unsafe 的cas操作(需要知道valueOffset,变量在对象中的偏移量)
+ */
 public class AtomicInteger extends Number implements java.io.Serializable {
     private static final long serialVersionUID = 6214790243416807050L;
 
@@ -59,7 +64,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     private static final long valueOffset;
 
     static {
-        try { //value字段在对象中的偏移量
+        try { //value字段在对象中的偏移量是固定的
             valueOffset = unsafe.objectFieldOffset
                 (AtomicInteger.class.getDeclaredField("value"));
         } catch (Exception ex) { throw new Error(ex); }

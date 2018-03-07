@@ -163,7 +163,7 @@ public abstract class SelectorProvider {
      */
     public static SelectorProvider provider() {
         synchronized (lock) {
-            if (provider != null)
+            if (provider != null)//保证只有一个provider对象实例
                 return provider;
             return AccessController.doPrivileged(
                 new PrivilegedAction<SelectorProvider>() {
@@ -172,7 +172,7 @@ public abstract class SelectorProvider {
                                 return provider;
                             if (loadProviderAsService())
                                 return provider;
-                            provider = sun.nio.ch.DefaultSelectorProvider.create();
+                            provider = sun.nio.ch.DefaultSelectorProvider.create();//返回此时调用JVM的系统级默认的SelectorProvider
                             return provider;
                         }
                     });

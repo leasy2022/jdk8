@@ -47,6 +47,10 @@ import java.util.function.Supplier;
  *
  * @since 1.8
  */
+/*
+为了弥补空指针错误,而开发的
+一个单对象容器: 可能是一个null,也可能是一个正常的实例
+ */
 public final class Optional<T> {
     /**
      * Common instance for {@code empty()}.
@@ -104,6 +108,7 @@ public final class Optional<T> {
      * @return an {@code Optional} with the value present
      * @throws NullPointerException if value is null
      */
+    //如果value为null,在构造函数中检查会抛出异常;因此需要使用ofNullable
     public static <T> Optional<T> of(T value) {
         return new Optional<>(value);
     }
@@ -170,7 +175,7 @@ public final class Optional<T> {
      * otherwise an empty {@code Optional}
      * @throws NullPointerException if the predicate is null
      */
-    public Optional<T> filter(Predicate<? super T> predicate) {
+    public Optional<T> filter(Predicate<? super T> predicate) {//Predicate 断言
         Objects.requireNonNull(predicate);
         if (!isPresent())
             return this;

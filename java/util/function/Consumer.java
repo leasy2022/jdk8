@@ -38,6 +38,9 @@ import java.util.Objects;
  *
  * @since 1.8
  */
+/*
+没有返回值,但是 会通过副作用 来修改值
+ */
 @FunctionalInterface
 public interface Consumer<T> {
 

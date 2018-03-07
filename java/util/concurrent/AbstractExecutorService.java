@@ -68,6 +68,9 @@ import java.util.*;
  * @since 1.5
  * @author Doug Lea
  */
+/*
+submit方法,不管传入的参数是callable还是runnable, 都被被封装成FutrueTask
+ */
 public abstract class AbstractExecutorService implements ExecutorService {
 
     /**

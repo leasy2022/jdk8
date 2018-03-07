@@ -257,7 +257,7 @@ public interface Collector<T, A, R> {
      * @throws NullPointerException if any argument is null
      * @return the new {@code Collector}
      */
-    public static<T, R> Collector<T, R, R> of(Supplier<R> supplier,
+    public static<T, R> Collector<T, R, R> of(Supplier<R> supplier,//这个类型R决定了accumulator的R类型
                                               BiConsumer<R, T> accumulator,
                                               BinaryOperator<R> combiner,
                                               Characteristics... characteristics) {

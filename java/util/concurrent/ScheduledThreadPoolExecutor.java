@@ -148,6 +148,9 @@ public class ScheduledThreadPoolExecutor
             extends FutureTask<V> implements RunnableScheduledFuture<V> {
 
         /** Sequence number to break ties FIFO */
+        /*
+
+         */
         private final long sequenceNumber;
 
         /** The time the task is enabled to execute in nanoTime units */
@@ -159,7 +162,7 @@ public class ScheduledThreadPoolExecutor
          * indicates fixed-delay execution.  A value of 0 indicates a
          * non-repeating task.
          */
-        private final long period; //0 是一次性任务; 正数是 fixed-rate; 负数是fixed-delay
+        private final long period; //0 是一次性任务; 正数是固定频率 fixed-rate; 负数是固定延迟 fixed-delay
 
         /** The actual task to be re-enqueued by reExecutePeriodic */
         RunnableScheduledFuture<V> outerTask = this;
@@ -172,10 +175,14 @@ public class ScheduledThreadPoolExecutor
         /**
          * Creates a one-shot action with given nanoTime-based trigger time.
          */
+        /*
+
+         */
         ScheduledFutureTask(Runnable r, V result, long ns) {
             super(r, result);
             this.time = ns;
             this.period = 0;
+            //唯一标识: (可能两个任务time完全相同)
             this.sequenceNumber = sequencer.getAndIncrement();
         }
 
@@ -236,8 +243,8 @@ public class ScheduledThreadPoolExecutor
          */
         private void setNextRunTime() {
             long p = period;
-            if (p > 0)  //fixed-rate
-                time += p;
+            if (p > 0)  //fixed-rate  因为是固定频率,所以在上一时间上,直接加上period.
+                time += p;//即使执行的时长超过了period,也不能开始下一个任务,因为要保证同一时间,只有一个任务在执行
             else //fixed-delay
                 time = triggerTime(-p);
         }
@@ -252,12 +259,13 @@ public class ScheduledThreadPoolExecutor
         /**
          * Overrides FutureTask version so as to reset/requeue if periodic.
          */
+        //
         public void run() {
             boolean periodic = isPeriodic();
             if (!canRunInCurrentRunState(periodic))
                 cancel(false);
             else if (!periodic)//如果不是周期执行
-                ScheduledFutureTask.super.run();
+                ScheduledFutureTask.super.run();//因为把传入的 task,赋值给父类FutureTask的callable了
             else if (ScheduledFutureTask.super.runAndReset()) {//执行完一个任务,才放入一个新任务到队列
                 setNextRunTime(); //设置任务的时间
                 reExecutePeriodic(outerTask);
@@ -298,7 +306,7 @@ public class ScheduledThreadPoolExecutor
                 remove(task))
                 task.cancel(false);
             else
-                ensurePrestart(); // 确保有线程去执行
+                ensurePrestart(); // 放入队列中,会启动一个线程去执行任务
         }
     }
 
@@ -536,7 +544,7 @@ public class ScheduledThreadPoolExecutor
                                           triggerTime(initialDelay, unit),
                                           unit.toNanos(period));
         RunnableScheduledFuture<Void> t = decorateTask(command, sft);
-        sft.outerTask = t;
+        sft.outerTask = t; //保存任务,重新设置事件,再次执行
         delayedExecute(t);
         return t;
     }
@@ -988,7 +996,7 @@ public class ScheduledThreadPoolExecutor
                 }
                 if (queue[0] == e) {
                     leader = null;
-                    available.signal();
+                    available.signal(); //通知消费线程
                 }
             } finally {
                 lock.unlock();
@@ -1038,6 +1046,13 @@ public class ScheduledThreadPoolExecutor
             }
         }
 
+
+        //怎么实现的延迟调用?
+        /*
+        1 把任务封装成ScheduledFutureTask,放入延迟队列 DelayedWorkQueue
+        2 怎么实现的调用延迟?  线程调用take函数,一直阻塞着, 直到take返回数据.
+        3 关键是take的实现:
+         */
         public RunnableScheduledFuture<?> take() throws InterruptedException {
             final ReentrantLock lock = this.lock;
             lock.lockInterruptibly();
@@ -1045,7 +1060,7 @@ public class ScheduledThreadPoolExecutor
                 for (;;) {
                     RunnableScheduledFuture<?> first = queue[0];
                     if (first == null)
-                        available.await();
+                        available.await();//如果没有元素,则阻塞;直至 available.signal 被调用
                     else {
                         long delay = first.getDelay(NANOSECONDS);
                         if (delay <= 0)

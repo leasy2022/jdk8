@@ -282,6 +282,8 @@ public abstract class AsynchronousServerSocketChannel
      * @throws  ShutdownChannelGroupException
      *          If the channel group has terminated
      */
+    //1 attachment 会传递到 handler中
+    //2 在handler 中, result 参数是 AsynchronousSocketChannel(不同于AsynchronousServerSocketChannel)
     public abstract <A> void accept(A attachment,
                                     CompletionHandler<AsynchronousSocketChannel,? super A> handler);
 
@@ -303,6 +305,7 @@ public abstract class AsynchronousServerSocketChannel
      * @throws  NotYetBoundException
      *          If this channel's socket has not yet been bound
      */
+    // aio是异步的:要不返回值为Future, 要么使用回调函数
     public abstract Future<AsynchronousSocketChannel> accept();
 
     /**

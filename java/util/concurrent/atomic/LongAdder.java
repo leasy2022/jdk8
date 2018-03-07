@@ -67,6 +67,16 @@ import java.io.Serializable;
  * @since 1.8
  * @author Doug Lea
  */
+/*
+
+这个类所做的事情是当一个直接CAS由于竞争失败时，
+它将delta保存在为该线程分配的一个内部单元对象中，
+然后当intValue()被调用时，它会将这些临时单元的值再相加到结果和中。
+这就减少了返回重新CAS或者阻塞其他线程的必要
+
+参考:
+https://wizardforcel.gitbooks.io/java8-tutorials/content/Java%208%20LongAdders%20%E7%AE%A1%E7%90%86%E5%B9%B6%E5%8F%91%E8%AE%A1%E6%95%B0%E5%99%A8%E7%9A%84%E6%AD%A3%E7%A1%AE%E6%96%B9%E5%BC%8F.html
+ */
 public class LongAdder extends Striped64 implements Serializable {
     private static final long serialVersionUID = 7249069246863182397L;
 

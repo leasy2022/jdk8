@@ -88,7 +88,7 @@ public interface Iterator<E> {
      *         yet been called, or the {@code remove} method has already
      *         been called after the last call to the {@code next}
      *         method
-     */
+     */ //defautl  jdk8 的新关键字: 在接口中有方法的默认实现
     default void remove() {
         throw new UnsupportedOperationException("remove");
     }

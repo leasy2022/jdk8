@@ -79,7 +79,7 @@ public final class StandardSocketOptions {
      *
      * @see <a href="http://www.ietf.org/rfc/rfc1122.txt">RFC&nbsp;1122
      * Requirements for Internet Hosts -- Communication Layers</a>
-     * @see Socket#setKeepAlive
+     * @see Socket
      */
     public static final SocketOption<Boolean> SO_KEEPALIVE =
         new StdSocketOption<Boolean>("SO_KEEPALIVE", Boolean.class);

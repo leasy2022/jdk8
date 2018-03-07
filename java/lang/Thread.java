@@ -147,7 +147,7 @@ class Thread implements Runnable {
         registerNatives();
     }
 
-    private volatile char  name[];
+    private volatile char  name[];//线程名字
     private int            priority;
     private Thread         threadQ;
     private long           eetop;
@@ -459,6 +459,10 @@ class Thread implements Runnable {
      *         is started. If {@code null}, this classes {@code run} method does
      *         nothing.
      */
+    /*
+    为什么都是Runnable,没有callable?
+    因为thread异步执行,拿不到返回结果.
+     */
     public Thread(Runnable target) {
         init(null, target, "Thread-" + nextThreadNum(), 0);
     }
@@ -697,9 +701,10 @@ class Thread implements Runnable {
      * @see        #stop()
      */
     /*
+    在start0()中,JVM会生成一个新的线程,并调用run()方法.
+
     启动入口: 检查线程状态;把线程加入group;调用本地函数启动
 
-    线程最终会执行run()方法
      */
     public synchronized void start() {
         /**

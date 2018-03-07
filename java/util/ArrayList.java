@@ -162,6 +162,7 @@ public class ArrayList<E> extends AbstractList<E>
      * Constructs an empty list with an initial capacity of ten.
      */
     public ArrayList() {
+        // 先赋空数组;当真正使用的时候,再生成
         this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
     }
 
@@ -252,7 +253,7 @@ public class ArrayList<E> extends AbstractList<E>
     private void grow(int minCapacity) {
         // overflow-conscious code
         int oldCapacity = elementData.length;
-        int newCapacity = oldCapacity + (oldCapacity >> 1);
+        int newCapacity = oldCapacity + (oldCapacity >> 1);//扩容:再增加原来的一半
         if (newCapacity - minCapacity < 0)
             newCapacity = minCapacity;
         if (newCapacity - MAX_ARRAY_SIZE > 0)
@@ -311,11 +312,11 @@ public class ArrayList<E> extends AbstractList<E>
     元素可以为null
      */
     public int indexOf(Object o) {
-        if (o == null) {
+        if (o == null) { //如果是null,使用 == 比较地址
             for (int i = 0; i < size; i++)
                 if (elementData[i]==null)
                     return i;
-        } else {
+        } else { //如果不是null,则调用 equals 方法
             for (int i = 0; i < size; i++)
                 if (o.equals(elementData[i]))
                     return i;
@@ -559,6 +560,8 @@ public class ArrayList<E> extends AbstractList<E>
      */
     /*
     clear 是把每个元素都置为null,而不是数组
+    好处:避免重新分配
+    坏处:仍占有原来的数组空间
      */
     public void clear() {
         modCount++;
@@ -583,6 +586,7 @@ public class ArrayList<E> extends AbstractList<E>
      * @return <tt>true</tt> if this list changed as a result of the call
      * @throws NullPointerException if the specified collection is null
      */
+    //直接使用System.arraycopy拷贝,而不是逐个赋值
     public boolean addAll(Collection<? extends E> c) {
         Object[] a = c.toArray();
         int numNew = a.length;
@@ -848,8 +852,8 @@ public class ArrayList<E> extends AbstractList<E>
      * An optimized version of AbstractList.Itr
      */
     private class Itr implements Iterator<E> {
-        int cursor;       // index of next element to return
-        int lastRet = -1; // index of last element returned; -1 if no such
+        int cursor;       // index of next element to return 下一个即将输出的元素的index
+        int lastRet = -1; // index of last element returned; -1 if no such  刚刚输出的 元素的index
         int expectedModCount = modCount;
 
         public boolean hasNext() {
@@ -876,8 +880,8 @@ public class ArrayList<E> extends AbstractList<E>
 
             try {
                 ArrayList.this.remove(lastRet);
-                cursor = lastRet;
-                lastRet = -1;
+                cursor = lastRet;//给下一个元素 赋值 为上一个元素的值
+                lastRet = -1; //调用一次删除,会将lastRet设为-1, 因此不能调用两次remove
                 expectedModCount = modCount;
             } catch (IndexOutOfBoundsException ex) {
                 throw new ConcurrentModificationException();
@@ -916,11 +920,13 @@ public class ArrayList<E> extends AbstractList<E>
      * An optimized version of AbstractList.ListItr
      */
     private class ListItr extends Itr implements ListIterator<E> {
+        //构造函数
         ListItr(int index) {
             super();
             cursor = index;
         }
-
+        //不管是向前还是向后获取元素,都根据cursor来取
+        // set修改根据lastRet
         public boolean hasPrevious() {
             return cursor != 0;
         }
@@ -958,6 +964,7 @@ public class ArrayList<E> extends AbstractList<E>
             }
         }
 
+        //在cursor处add
         public void add(E e) {
             checkForComodification();
 

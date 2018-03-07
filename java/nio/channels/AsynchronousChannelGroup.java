@@ -268,7 +268,7 @@ public abstract class AsynchronousChannelGroup {
      */
     public static AsynchronousChannelGroup withThreadPool(ExecutorService executor)
         throws IOException
-    {
+    {//spi: Service Provider Interface
         return AsynchronousChannelProvider.provider()
             .openAsynchronousChannelGroup(executor, 0);
     }

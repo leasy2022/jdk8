@@ -80,6 +80,10 @@ import java.util.function.Consumer;
  * @param <E> the type of elements held in this collection
  */
 
+/*
+是双向链表
+ */
+
 public class LinkedList<E>
     extends AbstractSequentialList<E>
     implements List<E>, Deque<E>, Cloneable, java.io.Serializable
@@ -141,7 +145,7 @@ public class LinkedList<E>
         final Node<E> l = last;
         final Node<E> newNode = new Node<>(l, e, null);
         last = newNode;
-        if (l == null)
+        if (l == null) //如果是第一个元素
             first = newNode;
         else
             l.next = newNode;
@@ -334,7 +338,7 @@ public class LinkedList<E>
      * @param e element to be appended to this list
      * @return {@code true} (as specified by {@link Collection#add})
      */
-    public boolean  add(E e) {
+    public boolean add(E e) {
         linkLast(e);
         return true;
     }

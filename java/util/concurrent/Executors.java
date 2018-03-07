@@ -126,7 +126,7 @@ public class Executors {
      */
     public static ExecutorService newWorkStealingPool() {
         return new ForkJoinPool
-            (Runtime.getRuntime().availableProcessors(),
+            (Runtime.getRuntime().availableProcessors(),//默认为机器的核心数
              ForkJoinPool.defaultForkJoinWorkerThreadFactory,
              null, true);
     }
@@ -215,7 +215,7 @@ public class Executors {
      *
      * @return the newly created thread pool
      */
-    // 初始线程个数为0, 最大无上限; 如果需要设置初始线程个数,并在空闲时保留,使用ScheduledThreadPoolExecutor
+    // 初始线程个数为0, 最大无上限; 如果需要设置初始线程个数,并在空闲时保留,使用 ScheduledThreadPoolExecutor
     public static ExecutorService newCachedThreadPool() {
         return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
                                       60L, TimeUnit.SECONDS,
@@ -251,6 +251,11 @@ public class Executors {
      * guaranteed not to be reconfigurable to use additional threads.
      * @return the newly created scheduled executor
      */
+    /*
+    使用 DelegatedScheduledExecutorService 又封装了一层:
+   1  如果在执行task的过程中失败了, 会启动一个新的线程继续执行后面的task
+   2  保证任务的 顺序执行,同一时间只有一个任务执行
+     */
     public static ScheduledExecutorService newSingleThreadScheduledExecutor() {
         return new DelegatedScheduledExecutorService
             (new ScheduledThreadPoolExecutor(1));
@@ -284,6 +289,10 @@ public class Executors {
      * even if they are idle
      * @return a newly created scheduled thread pool
      * @throws IllegalArgumentException if {@code corePoolSize < 0}
+     */
+    /*
+    1 延迟一段时间执行
+    2 或  周期执行
      */
     public static ScheduledExecutorService newScheduledThreadPool(int corePoolSize) {
         return new ScheduledThreadPoolExecutor(corePoolSize);

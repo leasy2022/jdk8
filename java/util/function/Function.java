@@ -37,8 +37,12 @@ import java.util.Objects;
  *
  * @since 1.8
  */
+/*
+同Consumer\Predicate接口非常类似:
+
+ */
 @FunctionalInterface
-public interface Function<T, R> {
+public interface Function<T, R> {//有两个泛型: T是传入类型  R是输出类型
 
     /**
      * Applies this function to the given argument.

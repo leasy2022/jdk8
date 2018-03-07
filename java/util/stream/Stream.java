@@ -267,6 +267,7 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      *               of new values
      * @return the new stream
      */
+    // Function 中第2个参数是一个Stream, 返回值是 Stream;
     <R> Stream<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper);
 
     /**
@@ -514,6 +515,12 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      *               non-interfering</a> action to perform on the elements
      * @see #forEach(Consumer)
      */
+    //即使并行下,也保证顺序
+//    public static void main(String[] args) {
+//        List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8);
+//        list.stream().parallel().forEach(x -> System.out.print(x));
+//        list.stream().parallel().forEachOrdered(x -> System.out.print(x));
+//    }
     void forEachOrdered(Consumer<? super T> action);
 
     /**

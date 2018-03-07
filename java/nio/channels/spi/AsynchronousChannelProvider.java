@@ -49,7 +49,7 @@ import java.security.PrivilegedAction;
  *
  * @since 1.7
  */
-
+//spi : Service Provider Interface
 public abstract class AsynchronousChannelProvider {
     private static Void checkPermission() {
         SecurityManager sm = System.getSecurityManager();

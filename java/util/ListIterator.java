@@ -57,6 +57,7 @@ package java.util;
  * @see List#listIterator()
  * @since   1.2
  */
+//增加了向前迭代的方法
 public interface ListIterator<E> extends Iterator<E> {
     // Query Operations
 

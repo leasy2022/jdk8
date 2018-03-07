@@ -1047,6 +1047,9 @@ class ThreadGroup implements Thread.UncaughtExceptionHandler {
      * @param   e   the uncaught exception.
      * @since   JDK1.0
      */
+    /*
+    可以捕获线程执行中抛出的异常
+     */
     public void uncaughtException(Thread t, Throwable e) {
         if (parent != null) {
             parent.uncaughtException(t, e);

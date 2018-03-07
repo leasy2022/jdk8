@@ -123,7 +123,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
             }
             return false;
         }
-        // 检查线程;  检查状态位
+        // 检查线程;  检查状态位 ..   acquire是增加状态位; release 是减小状态位
         protected final boolean tryRelease(int releases) {
             int c = getState() - releases;
             if (Thread.currentThread() != getExclusiveOwnerThread())//如果释放的线程和获取锁的线程不是同一个，抛出非法监视器状态异常。
@@ -133,7 +133,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
                 free = true;
                 setExclusiveOwnerThread(null);//设置当前占有锁线程为null
             }
-            setState(c);
+            setState(c); //会不会有多个线程同时释放,c是不同的值;那不就线程不安全了么? 不会,因为只要一个线程持有锁,并且前面检查了 Thread.currentThread() != getExclusiveOwnerThread()
             return free; // 当 c==0 时,锁被完全释放了
         }
 

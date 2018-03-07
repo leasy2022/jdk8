@@ -63,6 +63,9 @@ import java.util.Collection;
  * unused {@code ExecutorService} should be shut down to allow
  * reclamation of its resources.
  *
+ * submit方法扩展了execute方法:Future返回值,可以用了 取消执行或等待结束
+ * invokeAny/invokeAll 批量执行
+ *
  * <p>Method {@code submit} extends base method {@link
  * Executor#execute(Runnable)} by creating and returning a {@link Future}
  * that can be used to cancel execution and/or wait for completion.
@@ -204,6 +207,9 @@ public interface ExecutorService extends Executor {
      *
      * @return {@code true} if all tasks have completed following shut down
      */
+    /*
+    只有在调用 shutdown后,并且所有的任务完成,才会返回true
+     */
     boolean isTerminated();
 
     /**
@@ -226,6 +232,8 @@ public interface ExecutorService extends Executor {
      * Future's {@code get} method will return the task's result upon
      * successful completion.
      *
+     *
+     *
      * <p>
      * If you would like to immediately block waiting
      * for a task, you can use constructions of the form
@@ -242,6 +250,10 @@ public interface ExecutorService extends Executor {
      * @throws RejectedExecutionException if the task cannot be
      *         scheduled for execution
      * @throws NullPointerException if the task is null
+     */
+    /*
+    提交一个任务, 返回一个Future对象代表任务的返回值.
+    如果需要阻塞result = exec.submit(aCallable).get();
      */
     <T> Future<T> submit(Callable<T> task);
 
