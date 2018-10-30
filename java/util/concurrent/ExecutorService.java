@@ -270,6 +270,7 @@ public interface ExecutorService extends Executor {
      *         scheduled for execution
      * @throws NullPointerException if the task is null
      */
+    //
     <T> Future<T> submit(Runnable task, T result);
 
     /**
@@ -305,6 +306,9 @@ public interface ExecutorService extends Executor {
      * @throws NullPointerException if tasks or any of its elements are {@code null}
      * @throws RejectedExecutionException if any task cannot be
      *         scheduled for execution
+     */
+    /*
+    1 也是 阻塞的， 直到 所有的任务执行结束
      */
     <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
         throws InterruptedException;
@@ -359,6 +363,11 @@ public interface ExecutorService extends Executor {
      * @throws ExecutionException if no task successfully completes
      * @throws RejectedExecutionException if tasks cannot be scheduled
      *         for execution
+     */
+    /*
+    1 执行的任务为 Callable
+    2 调用后，会进行 阻塞， 直到 返回结果
+    3 一个任务执行完成后， 会取消其他任务的执行（发送中断消息）
      */
     <T> T invokeAny(Collection<? extends Callable<T>> tasks)
         throws InterruptedException, ExecutionException;

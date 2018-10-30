@@ -63,6 +63,7 @@ import sun.reflect.Reflection;
  * @author Doug Lea
  * @param <T> The type of the object holding the updatable field
  */
+
 public abstract class AtomicLongFieldUpdater<T> {
     /**
      * Creates and returns an updater for objects with the given field.

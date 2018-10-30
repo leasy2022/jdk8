@@ -165,7 +165,7 @@ class Thread implements Runnable {
     private Runnable target; //执行单元
 
     /* The group of this thread */
-    private ThreadGroup group; //线程属于哪个组
+    private ThreadGroup group; //线程属于哪个组, 同时用于异常处理
 
     /* The context ClassLoader for this thread */
     private ClassLoader contextClassLoader;
@@ -714,7 +714,7 @@ class Thread implements Runnable {
          *
          * A zero status value corresponds to state "NEW".
          */
-        if (threadStatus != 0)//线程运行后,肯定会修改线程状态
+        if (threadStatus != 0)//线程运行后,肯定会修改线程状态,防止重复调用
             throw new IllegalThreadStateException();
 
         /* Notify the group that this thread is about to be started
@@ -1732,7 +1732,7 @@ class Thread implements Runnable {
      *     A thread executing in the Java virtual machine is in this state.
      *     </li>
      * <li>{@link #BLOCKED}<br>
-     *     A thread that is blocked waiting for a monitor lock
+     *     A thread that is blocked waiting for a monitor lock4672
      *     is in this state.
      *     </li>
      * <li>{@link #WAITING}<br>

@@ -959,6 +959,7 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * @throws NullPointerException if the element selected is null
      * @see #findFirst()
      */
+    // 这是个 终止
     Optional<T> findAny();
 
     // Static factories
@@ -1033,7 +1034,7 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
             @Override
             public boolean hasNext() {
                 return true;
-            }
+            }//迭代器永远返回true
 
             @Override
             public T next() {

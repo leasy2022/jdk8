@@ -396,6 +396,10 @@ public class CopyOnWriteArrayList<E>
      *
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
+    /*
+    array 的长度会发生改变
+     可能会抛出数据越界的异常。
+     */
     public E get(int index) {
         return get(getArray(), index);
     }
@@ -435,6 +439,8 @@ public class CopyOnWriteArrayList<E>
      * @return {@code true} (as specified by {@link Collection#add})
      */
     // 每增加一个元素,都需要拷贝原来的数组到新数组
+    // 拷贝的时候，为什么加锁？而读取的时候，不加锁？
+    // 一个线程在add的时候，可能另外一个线程同时要add。因此，要加锁，一个一个来。
     public boolean add(E e) {
         final ReentrantLock lock = this.lock;
         lock.lock();

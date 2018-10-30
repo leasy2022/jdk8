@@ -994,7 +994,7 @@ public abstract class ByteBuffer
             throw new UnsupportedOperationException();
         if (isReadOnly)
             throw new ReadOnlyBufferException();
-        return hb;
+        return hb;//获取作为缓冲区的数组
     }
 
     /**

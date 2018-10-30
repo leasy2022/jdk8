@@ -457,7 +457,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 	 * return null even if it may later return non-null when delays
 	 * expire.
 	 */
-	private final BlockingQueue<Runnable> workQueue;
+	private final BlockingQueue<Runnable> workQueue;  //存储任务
 
 	/**
 	 * Lock held on access to workers set and related bookkeeping.
@@ -1842,6 +1842,9 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 	 *
 	 * @return the task queue
 	 */
+	/*
+	能够获取存储任务的队列： 用户可自行 添加任务或删除任务。
+	 */
 	public BlockingQueue<Runnable> getQueue() {
 		return workQueue;
 	}
@@ -2139,7 +2142,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 		 */
 		public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
 			if (!e.isShutdown()) {
-				r.run();
+				r.run(); //当前线程去运行， 不使用线程池
 			}
 		}
 	}

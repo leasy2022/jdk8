@@ -58,6 +58,9 @@ package java.util.concurrent;
  * actions taken by that task, which in turn <i>happen-before</i>
  * actions following a successful return from the corresponding {@code take()}.
  */
+/*
+会对 ExecutorService进行封装
+ */
 public interface CompletionService<V> {
     /**
      * Submits a value-returning task for execution and returns a Future

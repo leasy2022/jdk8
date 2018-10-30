@@ -106,7 +106,9 @@ import java.io.IOException;
  * @see SelectableChannel
  * @see Selector
  */
-
+/*
+集所有于一体： SelectableChannel 注册到 Selector，附属attachment， 关心的事件， 事件是否准备好
+ */
 public abstract class SelectionKey {
 
     /**
@@ -225,7 +227,7 @@ public abstract class SelectionKey {
      * an error pending, then it will add <tt>OP_READ</tt> to the key's
      * ready-operation set and add the key to its selected-key&nbsp;set.  </p>
      */
-    public static final int OP_READ = 1 << 0;
+    public static final int OP_READ = 1 << 0;//1
 
     /**
      * Operation-set bit for write operations.
@@ -238,7 +240,7 @@ public abstract class SelectionKey {
      * will add <tt>OP_WRITE</tt> to the key's ready set and add the key to its
      * selected-key&nbsp;set.  </p>
      */
-    public static final int OP_WRITE = 1 << 2;
+    public static final int OP_WRITE = 1 << 2;//4
 
     /**
      * Operation-set bit for socket-connect operations.
@@ -251,7 +253,7 @@ public abstract class SelectionKey {
      * <tt>OP_CONNECT</tt> to the key's ready set and add the key to its
      * selected-key&nbsp;set.  </p>
      */
-    public static final int OP_CONNECT = 1 << 3;
+    public static final int OP_CONNECT = 1 << 3;//8
 
     /**
      * Operation-set bit for socket-accept operations.
@@ -264,7 +266,7 @@ public abstract class SelectionKey {
      * <tt>OP_ACCEPT</tt> to the key's ready set and add the key to its
      * selected-key&nbsp;set.  </p>
      */
-    public static final int OP_ACCEPT = 1 << 4;
+    public static final int OP_ACCEPT = 1 << 4;//16
 
     /**
      * Tests whether this key's channel is ready for reading.

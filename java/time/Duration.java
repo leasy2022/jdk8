@@ -130,6 +130,12 @@ import java.util.regex.Pattern;
  *
  * @since 1.8
  */
+/*
+duration 和 period 的区别：
+它们都是表示一段时间，但是
+duration： 短，以秒为单位
+period：长，以年月日为单位
+ */
 public final class Duration
         implements TemporalAmount, Comparable<Duration>, Serializable {
 

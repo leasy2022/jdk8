@@ -63,6 +63,10 @@ import sun.reflect.Reflection;
  * @author Doug Lea
  * @param <T> The type of the object holding the updatable field
  */
+/*
+1 字段必须是 volatile int
+2 updater必须对 字段 有访问权限
+ */
 public abstract class AtomicIntegerFieldUpdater<T> {
     /**
      * Creates and returns an updater for objects with the given field.

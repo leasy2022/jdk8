@@ -107,6 +107,14 @@ import java.util.concurrent.locks.LockSupport;
  * @author Doug Lea
  * @since 1.8
  */
+/*
+为什么会有这个类？
+
+异步执行完后，异步通知（whenComplete*)方法， 而是不是 通过轮询或阻塞得到返回结果。
+
+参考：
+http://colobu.com/2018/03/12/20-Examples-of-Using-Java%E2%80%99s-CompletableFuture/
+ */
 public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
     /*
@@ -397,6 +405,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
      * Default executor -- ForkJoinPool.commonPool() unless it cannot
      * support parallelism.
      */
+    //默认的线程池：里面的线程都是 deamon 的
     private static final Executor asyncPool = useCommonPool ?
         ForkJoinPool.commonPool() : new ThreadPerTaskExecutor();
 

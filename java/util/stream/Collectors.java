@@ -349,7 +349,7 @@ public final class Collectors {
      */
     public static <T, U, A, R>
     Collector<T, ?, R> mapping(Function<? super T, ? extends U> mapper,
-                               Collector<? super U, A, R> downstream) {
+                               Collector<? super U, A, R> downstream) {//对前面的
         BiConsumer<A, ? super U> downstreamAccumulator = downstream.accumulator();
         return new CollectorImpl<>(downstream.supplier(),
                                    (r, t) -> downstreamAccumulator.accept(r, mapper.apply(t)),
@@ -375,6 +375,7 @@ public final class Collectors {
      * @return a collector which performs the action of the downstream collector,
      * followed by an additional finishing step
      */
+    //传入的 第一个参数 又是 一个 Collector
     public static<T,A,R,RR> Collector<T,A,RR> collectingAndThen(Collector<T,A,R> downstream,
                                                                 Function<R,RR> finisher) {
         Set<Collector.Characteristics> characteristics = downstream.characteristics();
@@ -899,7 +900,7 @@ public final class Collectors {
      */
     public static <T, K, D, A, M extends Map<K, D>>
     Collector<T, ?, M> groupingBy(Function<? super T, ? extends K> classifier,
-                                  Supplier<M> mapFactory,
+                                  Supplier<M> mapFactory, //自己 提供一个map
                                   Collector<? super T, A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
         BiConsumer<A, ? super T> downstreamAccumulator = downstream.accumulator();
@@ -1423,9 +1424,9 @@ public final class Collectors {
      */
     public static <T, K, U>
     Collector<T, ?, ConcurrentMap<K,U>>
-    toConcurrentMap(Function<? super T, ? extends K> keyMapper,
-                    Function<? super T, ? extends U> valueMapper,
-                    BinaryOperator<U> mergeFunction) {
+    toConcurrentMap(Function<? super T, ? extends K> keyMapper,//生成key
+                    Function<? super T, ? extends U> valueMapper,//生成value
+                    BinaryOperator<U> mergeFunction) { //对相同的key进行merge操作
         return toConcurrentMap(keyMapper, valueMapper, mergeFunction, ConcurrentHashMap::new);
     }
 

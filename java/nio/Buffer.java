@@ -183,9 +183,9 @@ public abstract class Buffer {
         Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.ORDERED;
 
     // Invariants: mark <= position <= limit <= capacity
-    private int mark = -1;//标记. mark()和reset()配套
-    private int position = 0; //下一个要被读或写的元素的索引
-    private int limit;//第一个不能读或写的元素
+    private int mark = -1;//标记位置 . mark()和reset()配套
+    private int position = 0; //开始位置： 下一个要被读或写的元素的索引
+    private int limit;//结束位置： 第一个不能读或写的元素
     private int capacity;//构造时创建, 不能改变
 
     // Used only by direct buffers
@@ -368,7 +368,7 @@ public abstract class Buffer {
 
     //同 rewind的区别: 多了limit = position
     //buffer.limit(buffer.position()).position(0);
-    public final Buffer flip() {
+    public final Buffer flip() {//由 写模式 切换到 读模式 （并不能切换回去）
         limit = position;
         position = 0;
         mark = -1;
@@ -391,8 +391,8 @@ public abstract class Buffer {
      * @return  This buffer
      */
 
-    public final Buffer rewind() {
-        position = 0;
+    public final Buffer rewind() {//重新写，或重新读
+        position = 0; //同clear的区别：rewind保留了limit的值， clear重置了
         mark = -1;
         return this;
     }

@@ -189,25 +189,25 @@ import java.util.function.Supplier;
  * @see Collectors
  *
  * @param <T> the type of input elements to the reduction operation
- * @param <A> the mutable accumulation type of the reduction operation (often
- *            hidden as an implementation detail)
- * @param <R> the result type of the reduction operation
+ * @param <A> the mutable   type of the reduction operation (often
+ *            hidden as an implementation detail) 累加器类型
+ * @param <R> the result type of the reduction operation  返回类型
  * @since 1.8
  */
-public interface Collector<T, A, R> {
+public interface Collector<T, A, R> { //传入的元素类型,累加器类型,返回类型
     /**
      * A function that creates and returns a new mutable result container.
      *
      * @return a function which returns a new, mutable result container
      */
-    Supplier<A> supplier();
+    Supplier<A> supplier(); //1 生成一个 container
 
     /**
      * A function that folds a value into a mutable result container.
      *
      * @return a function which folds a value into a mutable result container
      */
-    BiConsumer<A, T> accumulator();
+    BiConsumer<A, T> accumulator(); //2 遍历，把每个元素和container 传入，进行消费
 
     /**
      * A function that accepts two partial results and merges them.  The
@@ -217,6 +217,7 @@ public interface Collector<T, A, R> {
      * @return a function which combines two partial results into a combined
      * result
      */
+    //并行计算的时候，使用
     BinaryOperator<A> combiner();
 
     /**
@@ -238,6 +239,7 @@ public interface Collector<T, A, R> {
      *
      * @return an immutable set of collector characteristics
      */
+    //加一些特征值
     Set<Characteristics> characteristics();
 
     /**
@@ -322,6 +324,9 @@ public interface Collector<T, A, R> {
          * then it should only be evaluated concurrently if applied to an
          * unordered data source.
          */
+        //表示中间结果只有一个，即使在并行流的情况下。
+        // 所以只有在并行流且收集器不具备CONCURRENT特性时，
+        // combiner方法返回的lambda表达式才会执行（中间结果容器只有一个就无需合并）。
         CONCURRENT,
 
         /**
@@ -329,6 +334,7 @@ public interface Collector<T, A, R> {
          * the encounter order of input elements.  (This might be true if the
          * result container has no intrinsic order, such as a {@link Set}.)
          */
+        //表示流中的元素无序。
         UNORDERED,
 
         /**
@@ -336,6 +342,7 @@ public interface Collector<T, A, R> {
          * can be elided.  If set, it must be the case that an unchecked cast
          * from A to R will succeed.
          */
+        //表示中间结果容器类型与最终结果类型一致，此时finiser方法不会被调用。
         IDENTITY_FINISH
     }
 }

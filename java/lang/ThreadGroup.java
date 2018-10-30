@@ -53,6 +53,12 @@ import sun.misc.VM;
  * and working off of that snapshot, rather than holding the thread group locked
  * while we work on the children.
  */
+/*
+线程组
+1 查看组状态的 各种api
+2 设置组属性的api，作用于组内的线程:deamon
+
+ */
 public
 class ThreadGroup implements Thread.UncaughtExceptionHandler {
     private final ThreadGroup parent;
